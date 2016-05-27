@@ -32,11 +32,10 @@ void depth_post_process_filter::process_frame
 	int kernel_size = 3;
 	constexpr int iterations = 2, smooth_iterations = 2;
 	
-	masked_image<real_depth_type> in_img( job.in(input) );
-	masked_image<real_depth_type> out_img(out);
+	masked_image<real_depth_type> img(in);
 	
-	auto input_mask = in_img.cv_mask_mat();
-	auto input_depth = in_img.cv_mat();
+	auto input_mask = img.cv_mask_mat();
+	auto input_depth = img.cv_mat();
 
 	cv::Mat_<uchar> non_holes = input_mask;
 	cv::Mat_<float> depth = input_depth;
@@ -51,7 +50,7 @@ void depth_post_process_filter::process_frame
 			cv::bitwise_not(non_holes, holes);
 			cv::medianBlur(holes, smoothed_holes, kernel_size);
 			cv::bitwise_and(non_holes, smoothed_holes, added_holes[j]);
-			smoothed_holes.setTo(false, added_holes[j]);
+			smoothed_holes.setTo(0, added_holes[j]);
 			cv::bitwise_not(smoothed_holes, non_holes);
 		}
 		
@@ -62,10 +61,7 @@ void depth_post_process_filter::process_frame
 		}
 	}
 	
-	non_holes.copyTo(out_img.cv_mask_mat());
-	depth.copyTo(out_img.cv_mat());
-	
-	out_img.commit_cv_mat();
+	img.write(out);
 }
 
 }

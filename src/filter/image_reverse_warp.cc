@@ -43,7 +43,7 @@ void image_reverse_warp_filter::process(job_type& job) {
 	for(auto dest_pix_coord : make_ndspan(shape_)) {
 		masked_real_depth_type dest_depth = dest_depth_in.at(dest_pix_coord);
 		if(dest_depth.is_null()) {
-			dest_image_out.at(dest_pix_coord) = masked_color_type::null();
+			dest_image_out.at(dest_pix_coord) = nullelem;
 			continue;
 		}
 
@@ -58,7 +58,7 @@ void image_reverse_warp_filter::process(job_type& job) {
 			color_type source_color = source_image_in.at(source_pix_coord);
 			dest_image_out.at(dest_pix_coord) = source_color;
 		} else {
-			dest_image_out.at(dest_pix_coord) = masked_color_type::null();
+			dest_image_out.at(dest_pix_coord) = nullelem;
 		}
 	}
 }

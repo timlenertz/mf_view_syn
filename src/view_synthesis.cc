@@ -28,8 +28,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "filter/result_post_process.h"
 #include <mf/filter/exporter.h>
 #include <mf/filter/importer.h>
+#include <mf/flow/async_node.h>
 #include <mf/io/yuv_importer.h>
-#include <mf/io/video_exporter.h>
+#include <mf/io/raw_video_exporter.h>
 #include <mf/flow/sync_node.h>
 
 #include <iostream>
@@ -89,7 +90,7 @@ image_post_process_filter& view_synthesis::setup_branch_(bool right_side) {
 	connect_with_color_converter_(image_warp.source_image_input, image_source.output);
 	image_warp.destination_depth_input.connect(depth_post.output);
 	
-	auto& image_post = graph_.add_filter<image_post_process_filter>();
+	auto& image_post = graph_.add_filter<image_post_process_filter, flow::async_node>();
 	image_post.right_side.set_constant(right_side);
 	image_post.input.connect(image_warp.destination_image_output);
 	
@@ -112,7 +113,10 @@ void view_synthesis::setup() {
 	result_post.input.connect(blend.virtual_image_output);
 
 	auto shape = make_ndsize(config_.get_int("SourceHeight"), config_.get_int("SourceWidth"));
-	auto& sink = graph_.add_sink_filter<flow::exporter_filter<video_exporter>>("output.avi", shape);
+	auto& sink = graph_.add_sink_filter<flow::exporter_filter<raw_video_exporter<rgb_color>>>(
+		"output.yuv",
+		raw_video_frame_formats::planar_rgb()
+	);
 	sink.input.connect(result_post.output);
 	
 	graph_.setup();

@@ -30,7 +30,7 @@ void depth_warp_filter::process_frame
 	auto source_cam = job.param(source_camera);
 	auto dest_cam = job.param(destination_camera);
 
-	std::fill(dest_depth_out.begin(), dest_depth_out.end(), masked_real_depth_type::null());
+	std::fill(dest_depth_out.begin(), dest_depth_out.end(), nullelem);
 
 	Eigen_projective3 homography = homography_transformation(source_cam, dest_cam);
 

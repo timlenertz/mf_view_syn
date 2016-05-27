@@ -62,7 +62,7 @@ void result_blend_filter::process(job_type& job) {
 		masked_color_type virtual_color;
 
 		if(left_color.is_null() && right_color.is_null())
-			virtual_color = masked_color_type::null();
+			virtual_color = nullelem;
 		else if(left_color.is_null() || (left_color.get_flag(unstable_pixel_flag) && prefer_right))
 			virtual_color = right_color;
 		else if(right_color.is_null() || (right_color.get_flag(unstable_pixel_flag) && prefer_left))
