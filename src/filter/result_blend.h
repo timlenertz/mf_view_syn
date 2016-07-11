@@ -36,6 +36,8 @@ private:
 public:
 	input_type<2, masked_color_type> left_image_input;
 	input_type<2, masked_color_type> right_image_input;
+	input_type<2, masked_real_depth_type> left_depth_input;
+	input_type<2, masked_real_depth_type> right_depth_input;
 	output_type<2, masked_color_type> virtual_image_output;
 	parameter_type<camera_type> left_source_camera;
 	parameter_type<camera_type> right_source_camera;
@@ -43,7 +45,9 @@ public:
 
 	result_blend_filter() :
 		left_image_input(*this),
+		left_depth_input(*this),
 		right_image_input(*this),
+		right_depth_input(*this),
 		virtual_image_output(*this) { }
 
 	void setup() override;

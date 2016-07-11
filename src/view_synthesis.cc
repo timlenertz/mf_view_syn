@@ -44,7 +44,7 @@ view_synthesis::view_synthesis(const std::string& configuration_file) :
 	config_(configuration_file) { }
 
 
-image_post_process_filter& view_synthesis::setup_branch_(bool right_side) {
+view_synthesis::branch_outputs view_synthesis::setup_branch_(bool right_side) {
 	std::string image_file_parameter = (right_side ? "RightViewImageName" : "LeftViewImageName");
 	std::string depth_file_parameter = (right_side ? "RightDepthMapName" : "LeftDepthMapName");
 	std::string camera_name_parameter = (right_side ? "RightCameraName" : "LeftCameraName");
@@ -94,20 +94,27 @@ image_post_process_filter& view_synthesis::setup_branch_(bool right_side) {
 	image_post.right_side.set_constant(right_side);
 	image_post.input.connect(image_warp.destination_image_output);
 	
-	return image_post;
+	image_post.set_asynchonous(true);
+	
+	return branch_outputs {
+		&image_post.output,
+		&depth_post.output
+	};
 }
 
 
 void view_synthesis::setup() {
-	auto& left_branch = setup_branch_(false);
-	auto& right_branch = setup_branch_(true);
+	branch_outputs left_branch = setup_branch_(false);
+	branch_outputs right_branch = setup_branch_(true);
 	
 	auto& blend = graph_.add_filter<result_blend_filter>();
 	blend.left_source_camera.set_mirror(*left_camera_parameter_);
 	blend.right_source_camera.set_mirror(*right_camera_parameter_);
 	blend.virtual_camera.set_mirror(*virtual_camera_parameter_);
-	blend.left_image_input.connect(left_branch.output);
-	blend.right_image_input.connect(right_branch.output);
+	blend.left_image_input.connect(*left_branch.image_output);
+	blend.left_depth_input.connect(*left_branch.depth_output);
+	blend.right_image_input.connect(*right_branch.image_output);
+	blend.right_depth_input.connect(*right_branch.depth_output);
 	
 	auto& result_post = graph_.add_filter<result_post_process_filter>();
 	result_post.input.connect(blend.virtual_image_output);
