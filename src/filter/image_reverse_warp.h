@@ -37,8 +37,7 @@ public:
 	parameter_type<camera_type> source_camera;
 	parameter_type<camera_type> destination_camera;
 
-	image_reverse_warp_filter(node_type& nd) :
-		filter(nd),
+	image_reverse_warp_filter() :
 		source_image_input(*this),
 		destination_depth_input(*this),
 		destination_image_output(*this) { }

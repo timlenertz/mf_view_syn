@@ -18,41 +18,35 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef VS_VIEW_SYNTHESIS_H_
-#define VS_VIEW_SYNTHESIS_H_
+#ifndef PROG_COMMON_H_
+#define PROG_COMMON_H_
 
-#include <string>
+#include <cstdint>
+#include <mf/masked_elem.h>
 #include <mf/color.h>
-#include <mf/filter/filter_graph.h>
-#include <mf/filter/filter.h>
-#include <mf/filter/filter_parameter.h>
-#include "common.h"
-#include "rs_config_reader.h"
 
-namespace vs {
+namespace mf {
 
-class image_post_process_filter;
+template<> inline std::uint8_t color_convert(const mf::ycbcr_color& in) {
+	return in.y;
+}
 
-class view_synthesis {
-private:
-	rs_config_reader config_;
-	mf::flow::filter_graph graph_;
-	
-	mf::flow::filter_parameter<camera_type>* left_camera_parameter_ = nullptr;
-	mf::flow::filter_parameter<camera_type>* right_camera_parameter_ = nullptr;
-	mf::flow::filter_parameter<camera_type>* virtual_camera_parameter_ = nullptr;
-		
-	image_post_process_filter& setup_branch_(bool right_side);
-	
-public:
-	explicit view_synthesis(const std::string& configuration_file);
+template<> inline mf::masked_elem<std::uint8_t> color_convert(const mf::ycbcr_color& in) {
+	if(in.y == 0.0) return mf::masked_elem<std::uint8_t>::null();
+	else return in.y;
+}
 
-	void setup();
-	void run();
-};
+template<> inline mf::rgb_color color_convert(const std::uint8_t& in) {
+	return mf::rgb_color(in, in, in);
+}
 
+template<> inline mf::rgb_color color_convert(const mf::masked_elem<std::uint8_t>& in) {
+	if(in.is_null()) return mf::rgb_color(0, 0, 0); // background
+	else return mf::rgb_color(in, in, in);
+}
 
 }
 
-#endif
+using depth_type = std::uint8_t;
 
+#endif

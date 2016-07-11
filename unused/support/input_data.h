@@ -18,41 +18,33 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef VS_VIEW_SYNTHESIS_H_
-#define VS_VIEW_SYNTHESIS_H_
+#ifndef PROG_INPUT_DATA_H_
+#define PROG_INPUT_DATA_H_
 
-#include <string>
-#include <mf/color.h>
-#include <mf/filter/filter_graph.h>
-#include <mf/filter/filter.h>
-#include <mf/filter/filter_parameter.h>
+#include <cstdint>
+#include <vector>
+#include <mf/camera/projection_image_camera.h>
+#include <mf/config/vsrs_camera_array.h>
 #include "common.h"
-#include "rs_config_reader.h"
 
-namespace vs {
+using camera_type = mf::projection_image_camera<depth_type>;
 
-class image_post_process_filter;
-
-class view_synthesis {
-private:
-	rs_config_reader config_;
-	mf::flow::filter_graph graph_;
-	
-	mf::flow::filter_parameter<camera_type>* left_camera_parameter_ = nullptr;
-	mf::flow::filter_parameter<camera_type>* right_camera_parameter_ = nullptr;
-	mf::flow::filter_parameter<camera_type>* virtual_camera_parameter_ = nullptr;
-		
-	image_post_process_filter& setup_branch_(bool right_side);
-	
-public:
-	explicit view_synthesis(const std::string& configuration_file);
-
-	void setup();
-	void run();
+struct input_visual {
+	camera_type camera;
+	std::string image_yuv_file;
+	std::string depth_image_yuv_file;
 };
 
+struct input_data {
+	std::size_t image_width;
+	std::size_t image_height;
+	int yuv_sampling;
+	mf::depth_projection_parameters projection_parameters;
+	
+	std::vector<input_visual> visuals;
+};
 
-}
+input_data poznan_blocks();
+input_data poznan_blocks_scaled();
 
 #endif
-

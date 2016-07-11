@@ -34,33 +34,36 @@ void depth_post_process_filter::process_frame
 	
 	masked_image<real_depth_type> img(in);
 	
-	auto input_mask = img.cv_mask_mat();
-	auto input_depth = img.cv_mat();
-
-	cv::Mat_<uchar> non_holes = input_mask;
-	cv::Mat_<float> depth = input_depth;
-
+	cv::Mat_<uchar> holes;
+	cv::Mat_<float> depth;
+	
+	img.cv_mat().copyTo(depth);
+	cv::bitwise_not(img.cv_mask_mat(), holes);
+	depth.setTo(0.0f, holes);
 			
 	for(int i = 0; i < iterations; ++i) {
-		cv::Mat added_holes[smooth_iterations];
-		cv::Mat smoothed_holes, smoothed_depth;
+		cv::Mat_<uchar> added_holes[smooth_iterations];
+		cv::Mat_<float> smoothed_depth;
 
 		for(int j = 0; j < smooth_iterations; ++j) {
-			cv::Mat holes;
-			cv::bitwise_not(non_holes, holes);
+			cv::Mat_<uchar> non_holes, smoothed_holes;
+			cv::bitwise_not(holes, non_holes);
 			cv::medianBlur(holes, smoothed_holes, kernel_size);
 			cv::bitwise_and(non_holes, smoothed_holes, added_holes[j]);
 			smoothed_holes.setTo(0, added_holes[j]);
-			cv::bitwise_not(smoothed_holes, non_holes);
+			smoothed_holes.copyTo(holes);
 		}
 		
 		for(int j = 0; j < smooth_iterations; ++j) {
 			cv::medianBlur(depth, smoothed_depth, kernel_size);
+
 			depth.copyTo(smoothed_depth, added_holes[j]);
 			smoothed_depth.copyTo(depth);
 		}
 	}
 	
+	depth.copyTo(img.cv_mat());
+	cv::bitwise_not(holes, img.cv_mask_mat());
 	img.write(out);
 }
 

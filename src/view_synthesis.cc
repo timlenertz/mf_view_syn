@@ -77,7 +77,7 @@ image_post_process_filter& view_synthesis::setup_branch_(bool right_side) {
 	auto& depth_warp = graph_.add_filter<depth_warp_filter>();
 	depth_warp.source_camera.set_constant(source_camera);
 	depth_warp.destination_camera.set_constant(destination_camera);
-	connect_with_color_converter_(depth_warp.input, depth_source.output);
+	depth_warp.input.connect(depth_source.output, color_convert<integral_depth_type, ycbcr_color>);	
 	*camera_parameter_ptr = &depth_warp.source_camera;
 	virtual_camera_parameter_ = &depth_warp.destination_camera;
 	
@@ -87,10 +87,10 @@ image_post_process_filter& view_synthesis::setup_branch_(bool right_side) {
 	auto& image_warp = graph_.add_filter<image_reverse_warp_filter>();
 	image_warp.source_camera.set_constant(source_camera);
 	image_warp.destination_camera.set_constant(destination_camera);
-	connect_with_color_converter_(image_warp.source_image_input, image_source.output);
+	image_warp.source_image_input.connect(image_source.output, color_convert<rgb_color, ycbcr_color>);	
 	image_warp.destination_depth_input.connect(depth_post.output);
 	
-	auto& image_post = graph_.add_filter<image_post_process_filter, flow::async_node>();
+	auto& image_post = graph_.add_filter<image_post_process_filter>();
 	image_post.right_side.set_constant(right_side);
 	image_post.input.connect(image_warp.destination_image_output);
 	
@@ -113,9 +113,9 @@ void view_synthesis::setup() {
 	result_post.input.connect(blend.virtual_image_output);
 
 	auto shape = make_ndsize(config_.get_int("SourceHeight"), config_.get_int("SourceWidth"));
-	auto& sink = graph_.add_sink_filter<flow::exporter_filter<raw_video_exporter<rgb_color>>>(
-		"output.yuv",
-		raw_video_frame_formats::planar_rgb()
+	auto& sink = graph_.add_filter<flow::exporter_filter<raw_video_exporter<rgb_color>>>(
+		"output.rgb",
+		raw_video_frame_formats::interleaved_rgb()
 	);
 	sink.input.connect(result_post.output);
 	
@@ -124,9 +124,9 @@ void view_synthesis::setup() {
 
 
 void view_synthesis::run() {
-	graph_.callback_function = [](time_unit t) {
+	/*graph_.callback_function = [](time_unit t) {
 		std::cout << "frame " << t << "..." << std::endl;
-	};
+	};*/
 	graph_.run();
 }
 

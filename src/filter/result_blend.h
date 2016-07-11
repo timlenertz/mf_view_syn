@@ -41,8 +41,7 @@ public:
 	parameter_type<camera_type> right_source_camera;
 	parameter_type<camera_type> virtual_camera;
 
-	result_blend_filter(node_type& nd) :
-		filter(nd),
+	result_blend_filter() :
 		left_image_input(*this),
 		right_image_input(*this),
 		virtual_image_output(*this) { }

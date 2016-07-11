@@ -28,13 +28,13 @@ namespace vs {
 using namespace mf;
 
 void result_post_process_filter::process_frame
-(const input_view_type& in, const output_view_type& out, job_type& job) {	out=in;return;
-	double inpaint_radius = 5.0;
+(const input_view_type& in, const output_view_type& out, job_type& job) {
+	double inpaint_radius = 10.0;
 	
 	masked_image<color_type> img(in);
 
 	cv::Mat_<color_type> in_img = img.cv_mat();
-	cv::Mat_<uchar> in_mask = (img.cv_mask_mat() != 0);
+	cv::Mat_<uchar> in_mask = img.cv_mask_mat();
 	
 	cv::Mat_<uchar> holes;
 	cv::bitwise_not(in_mask, holes);
@@ -42,8 +42,7 @@ void result_post_process_filter::process_frame
 	cv::Vec<uchar, 3> inpaint_background(0, 128, 128);
 	
 	cv::Mat_<color_type> out_img;
-	in_img.copyTo(out_img);
-	out_img.setTo(inpaint_background, holes);
+	in_img.setTo(inpaint_background, holes);
 	
 	cv::inpaint(in_img, holes, out_img, inpaint_radius, cv::INPAINT_NS);
 	

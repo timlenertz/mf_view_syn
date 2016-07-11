@@ -58,7 +58,7 @@ void image_post_process_filter::erode_right_bounds_(cv::Mat_<uchar>& mat) {
 
 void image_post_process_filter::process_frame
 (const input_view_type& in, const output_view_type& out, job_type& job) {
-	int kernel_diameter = 7;
+	int kernel_diameter = 12;
 	
 	masked_image<color_type> img(in);
 
