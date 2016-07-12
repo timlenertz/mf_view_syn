@@ -42,6 +42,9 @@ public:
 	parameter_type<camera_type> left_source_camera;
 	parameter_type<camera_type> right_source_camera;
 	parameter_type<camera_type> virtual_camera;
+	
+	bool depth_blending = true;
+	mf::real depth_blending_minimal_difference = 5.0;
 
 	result_blend_filter() :
 		left_image_input(*this),
