@@ -21,20 +21,32 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_DEPTH_WARP_H_
 #define VW_FILTER_DEPTH_WARP_H_
 
-#include <mf/filter/simple_filter.h>
-#include <mf/masked_elem.h>
+#include <mf/filter/filter.h>
 #include "../common.h"
 
 namespace vs {
 
-class depth_warp_filter : public mf::flow::simple_filter<2, integral_depth_type, masked_real_depth_type> {
+class depth_warp_filter : public mf::flow::filter {
 public:
+	input_type<2, integral_depth_type> depth_input;
+	output_type<2, real_depth_type> depth_output;
+	output_type<2, mask_type> depth_mask_output;
+	
 	parameter_type<camera_type> source_camera;
 	parameter_type<camera_type> destination_camera;
+	
+	depth_warp_filter() :
+		depth_input(*this),
+		depth_output(*this),
+		depth_mask_output(*this)
+	{
+		depth_input.set_name("di");
+		depth_output.set_name("di mask");
+		depth_mask_output.set_name("di");
+	}
 
-	using simple_filter::simple_filter;
-
-	void process_frame(const input_view_type& in, const output_view_type& out, job_type& job) override;	
+	void setup() override;
+	void process(job_type& job) override;	
 };
 	
 }

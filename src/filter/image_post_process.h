@@ -21,24 +21,40 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_IMAGE_POST_PROCESS_H_
 #define VW_FILTER_IMAGE_POST_PROCESS_H_
 
-#include <mf/filter/simple_filter.h>
-#include <mf/masked_elem.h>
+#include <mf/filter/filter.h>
 #include <mf/opencv.h>
 #include "../common.h"
 
 namespace vs {
 
-class image_post_process_filter : public mf::flow::simple_filter<2, masked_color_type, masked_color_type> {
+class image_post_process_filter : public mf::flow::filter {
 private:
 	void erode_left_bounds_(cv::Mat_<uchar>&);
 	void erode_right_bounds_(cv::Mat_<uchar>&);
 
 public:
+	input_type<2, color_type> image_input;
+	input_type<2, mask_type> image_mask_input;
+	
+	output_type<2, color_type> image_output;
+	output_type<2, mask_type> image_mask_output;
+
 	parameter_type<bool> right_side;
+	
+	image_post_process_filter() :
+		image_input(*this),
+		image_mask_input(*this),
+		image_output(*this),
+		image_mask_output(*this)
+	{
+		image_input.set_name("in");
+		image_mask_input.set_name("in mask");
+		image_output.set_name("out");
+		image_mask_output.set_name("out mask");
+	}
 
-	using simple_filter::simple_filter;
-
-	void process_frame(const input_view_type& in, const output_view_type& out, job_type& job) override;	
+	void setup() override;
+	void process(job_type& job) override;	
 };
 	
 }

@@ -19,7 +19,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 */
 
 #include "depth_post_process.h"
-#include <mf/image/image.h>
+#include <mf/image/masked_image_view.h>
 #include <mf/opencv.h>
 #include "../common.h"
 
@@ -27,18 +27,29 @@ namespace vs {
 
 using namespace mf;
 
-void depth_post_process_filter::process_frame
-(const input_view_type& in, const output_view_type& out, job_type& job) {	
+void depth_post_process_filter::setup() {
+	depth_output.define_frame_shape(depth_input.frame_shape());
+	depth_mask_output.define_frame_shape(depth_input.frame_shape());
+}
+
+
+void depth_post_process_filter::process(job_type& job) {
 	int kernel_size = 3;
 	constexpr int iterations = 2, smooth_iterations = 2;
-	
-	masked_image<real_depth_type> img(in);
+
+	auto in = job.in(depth_input);
+	auto in_mask = job.in(depth_mask_input);
+	auto out = job.in(depth_output);
+	auto out_mask = job.in(depth_mask_output);
+
+	masked_image_view<real_depth_type, mask_type> in_img(in, in_mask);
+	masked_image_view<real_depth_type, mask_type> out_img(out, out_mask);
 	
 	cv::Mat_<uchar> holes;
-	cv::Mat_<float> depth;
-	
-	img.cv_mat().copyTo(depth);
-	cv::bitwise_not(img.cv_mask_mat(), holes);
+	cv::Mat_<float> depth; // double?
+
+	in_img.cv_mat().copyTo(depth);
+	cv::bitwise_not(in_img.cv_mask_mat(), holes);
 	depth.setTo(0.0f, holes);
 			
 	for(int i = 0; i < iterations; ++i) {
@@ -62,9 +73,8 @@ void depth_post_process_filter::process_frame
 		}
 	}
 	
-	depth.copyTo(img.cv_mat());
-	cv::bitwise_not(holes, img.cv_mask_mat());
-	img.write(out);
+	depth.copyTo(out_img.cv_mat());
+	cv::bitwise_not(holes, out_img.cv_mask_mat());
 }
 
 }

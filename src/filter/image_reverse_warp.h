@@ -32,15 +32,28 @@ private:
 
 public:
 	input_type<2, color_type> source_image_input;
-	input_type<2, masked_real_depth_type> destination_depth_input;
-	output_type<2, masked_color_type> destination_image_output;
+	input_type<2, real_depth_type> destination_depth_input;
+	input_type<2, mask_type> destination_depth_mask_input;
+	
+	output_type<2, color_type> destination_image_output;
+	output_type<2, mask_type> destination_image_mask_output;
+	
 	parameter_type<camera_type> source_camera;
 	parameter_type<camera_type> destination_camera;
 
 	image_reverse_warp_filter() :
 		source_image_input(*this),
 		destination_depth_input(*this),
-		destination_image_output(*this) { }
+		destination_depth_mask_input(*this),
+		destination_image_output(*this),
+		destination_image_mask_output(*this)
+	{
+		source_image_input.set_name("im");
+		destination_depth_input.set_name("di");
+		destination_depth_mask_input.set_name("di mask");
+		destination_image_output.set_name("im");
+		destination_image_mask_output.set_name("im mask");
+	}
 	
 	void setup() override;
 	void process(job_type& job) override;	

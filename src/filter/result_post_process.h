@@ -21,17 +21,29 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_RESULT_POST_PROCESS_H_
 #define VW_FILTER_RESULT_POST_PROCESS_H_
 
-#include <mf/filter/simple_filter.h>
-#include <mf/masked_elem.h>
+#include <mf/filter/filter.h>
 #include "../common.h"
 
 namespace vs {
-
-class result_post_process_filter : public mf::flow::simple_filter<2, masked_color_type, color_type> {
+	
+class result_post_process_filter : public mf::flow::filter {
 public:
-	using simple_filter::simple_filter;
-
-	void process_frame(const input_view_type& in, const output_view_type& out, job_type& job) override;	
+	input_type<2, color_type> image_input;
+	input_type<2, mask_type> image_mask_input;
+	output_type<2, color_type> image_output;
+	
+	result_post_process_filter() :
+		image_input(*this),
+		image_mask_input(*this),
+		image_output(*this)
+	{
+		image_input.set_name("im");
+		image_mask_input.set_name("im mask");
+		image_output.set_name("im");
+	}
+	
+	void setup() override;
+	void process(job_type& job) override;
 };
 	
 }

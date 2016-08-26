@@ -20,7 +20,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 #include "image_post_process.h"
 #include <mf/opencv.h>
-#include <mf/image/image.h>
+#include <mf/image/masked_image_view.h>
 #include <mf/image/kernel.h>
 
 namespace vs {
@@ -56,27 +56,38 @@ void image_post_process_filter::erode_right_bounds_(cv::Mat_<uchar>& mat) {
 }
 
 
-void image_post_process_filter::process_frame
-(const input_view_type& in, const output_view_type& out, job_type& job) {
+void image_post_process_filter::setup() {
+	image_output.define_frame_shape(image_input.frame_shape());
+	image_mask_output.define_frame_shape(image_input.frame_shape());
+}
+
+
+void image_post_process_filter::process(job_type& job) {
 	int kernel_diameter = 12;
+
+	auto in = job.in(image_input);
+	auto in_mask = job.in(image_mask_input);
+	auto out = job.in(image_output);
+	auto out_mask = job.in(image_mask_output);
 	
-	masked_image<color_type> img(in);
+	masked_image_view<color_type, mask_type> in_img(in, in_mask);
+	masked_image_view<color_type, mask_type> out_img(out, out_mask);
 
 	cv::Mat_<uchar> bound;
-	cv::bitwise_not(img.cv_mask_mat(), bound);
-	
+	cv::bitwise_not(in_img.cv_mask_mat(), bound);
+
 	if(job.param(right_side)) erode_right_bounds_(bound);
 	else erode_left_bounds_(bound);
-	
+
 	auto kernel = to_opencv( disk_image_kernel(kernel_diameter).view() );
 	cv::dilate(bound, bound, kernel);
-	
-	cv::bitwise_and(img.cv_mask_mat(), bound, bound);
+
+	cv::bitwise_and(in_img.cv_mask_mat(), bound, bound);
 
 	out = in;
-	for(auto c : make_ndspan(out.shape())) {
-		if(bound(c[0], c[1])) out.at(c).set_flag(unstable_pixel_flag);
-	}
+	out_mask = in_mask;
+	out_img.cv_mask_mat().setTo(unstable_pixel_mask, bound);
 }
+
 
 }

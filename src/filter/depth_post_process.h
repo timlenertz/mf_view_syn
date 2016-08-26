@@ -21,17 +21,32 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_DEPTH_POST_PROCESS_H_
 #define VW_FILTER_DEPTH_POST_PROCESS_H_
 
-#include <mf/filter/simple_filter.h>
-#include <mf/masked_elem.h>
+#include <mf/filter/filter.h>
 #include "../common.h"
 
 namespace vs {
 
-class depth_post_process_filter : public mf::flow::simple_filter<2, masked_real_depth_type, masked_real_depth_type> {
+class depth_post_process_filter : public mf::flow::filter {
 public:
-	using simple_filter::simple_filter;
+	input_type<2, real_depth_type> depth_input;
+	input_type<2, mask_type> depth_mask_input;
+	output_type<2, real_depth_type> depth_output;
+	output_type<2, mask_type> depth_mask_output;
+	
+	depth_post_process_filter() :
+		depth_input(*this),
+		depth_mask_input(*this),
+		depth_output(*this),
+		depth_mask_output(*this)
+	{
+		depth_input.set_name("di");
+		depth_mask_input.set_name("di mask");
+		depth_output.set_name("di");
+		depth_mask_output.set_name("di mask");
+	}
 
-	void process_frame(const input_view_type& in, const output_view_type& out, job_type& job) override;	
+	void setup() override;
+	void process(job_type& job) override;	
 };
 	
 }

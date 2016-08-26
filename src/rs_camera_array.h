@@ -24,7 +24,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/common.h>
 #include <mf/geometry/depth_projection_parameters.h>
 #include <mf/camera/projection_camera.h>
-#include <mf/ndarray/ndcoord.h>
+#include <mf/nd/ndcoord.h>
 #include <string>
 #include <map>
 #include <cstdint>

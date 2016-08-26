@@ -34,11 +34,17 @@ private:
 	std::pair<mf::real, mf::real> weights_(job_type& job) const;
 
 public:
-	input_type<2, masked_color_type> left_image_input;
-	input_type<2, masked_color_type> right_image_input;
-	input_type<2, masked_real_depth_type> left_depth_input;
-	input_type<2, masked_real_depth_type> right_depth_input;
-	output_type<2, masked_color_type> virtual_image_output;
+	input_type<2, color_type> left_image_input;
+	input_type<2, real_depth_type> left_depth_input;
+	input_type<2, mask_type> left_mask_input;
+	
+	input_type<2, color_type> right_image_input;
+	input_type<2, real_depth_type> right_depth_input;
+	input_type<2, mask_type> right_mask_input;
+
+	output_type<2, color_type> virtual_image_output;
+	output_type<2, mask_type> virtual_mask_output;
+	
 	parameter_type<camera_type> left_source_camera;
 	parameter_type<camera_type> right_source_camera;
 	parameter_type<camera_type> virtual_camera;
@@ -49,9 +55,22 @@ public:
 	result_blend_filter() :
 		left_image_input(*this),
 		left_depth_input(*this),
+		left_mask_input(*this),
 		right_image_input(*this),
 		right_depth_input(*this),
-		virtual_image_output(*this) { }
+		right_mask_input(*this),
+		virtual_image_output(*this),
+		virtual_mask_output(*this)
+	{
+		left_image_input.set_name("left im");
+		right_image_input.set_name("right im");
+		left_depth_input.set_name("left di");
+		right_depth_input.set_name("right di");
+		left_mask_input.set_name("left mask");
+		right_mask_input.set_name("right mask");
+		virtual_image_output.set_name("im");
+		virtual_mask_output.set_name("im mask");
+	}
 
 	void setup() override;
 	void process(job_type& job) override;	

@@ -21,32 +21,37 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "result_post_process.h"
 #include <algorithm>
 #include <mf/opencv.h>
-#include <mf/image/image.h>
+#include <mf/image/masked_image_view.h>
 
 namespace vs {
 
 using namespace mf;
 
-void result_post_process_filter::process_frame
-(const input_view_type& in, const output_view_type& out, job_type& job) {
-	double inpaint_radius = 10.0;
-	
-	masked_image<color_type> img(in);
+void result_post_process_filter::setup() {
+	image_output.define_frame_shape(image_input.frame_shape());
+}
 
-	cv::Mat_<color_type> in_img = img.cv_mat();
-	cv::Mat_<uchar> in_mask = img.cv_mask_mat();
+
+void result_post_process_filter::process(job_type& job) {
+	auto in = job.in(image_input);
+	auto in_mask = job.in(image_mask_input);
+	auto out = job.out(image_output);
+
+	double inpaint_radius = 10.0;
+	cv::Vec<uchar, 3> inpaint_background(0, 128, 128);
+
+	masked_image_view<color_type, mask_type> in_img(in, in_mask);
+	image_view<color_type> out_img(out);
+
+	cv::Mat_<color_type> in_img_mat = in_img.cv_mat();
+	cv::Mat_<uchar> in_mask_mat = in_img.cv_mask_mat();
+	cv::Mat_<color_type> out_img_mat = out_img.cv_mat();
 	
 	cv::Mat_<uchar> holes;
-	cv::bitwise_not(in_mask, holes);
+	cv::bitwise_not(in_mask_mat, holes);
 	
-	cv::Vec<uchar, 3> inpaint_background(0, 128, 128);
-	
-	cv::Mat_<color_type> out_img;
-	in_img.setTo(inpaint_background, holes);
-	
-	cv::inpaint(in_img, holes, out_img, inpaint_radius, cv::INPAINT_NS);
-	
-	copy_to_ndarray_view(out_img, out);
+	in_img_mat.setTo(inpaint_background, holes);
+	cv::inpaint(in_img_mat, holes, out_img_mat, inpaint_radius, cv::INPAINT_NS);	
 }
 
 }

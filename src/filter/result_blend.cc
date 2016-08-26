@@ -39,18 +39,22 @@ std::pair<real, real> result_blend_filter::weights_(job_type& job) const {
 
 
 void result_blend_filter::setup() {
-	MF_ASSERT(left_image_input.frame_shape() == right_image_input.frame_shape());
+	Assert(left_image_input.frame_shape() == right_image_input.frame_shape());
 	shape_ = left_image_input.frame_shape();
 	virtual_image_output.define_frame_shape(shape_);
+	virtual_mask_output.define_frame_shape(shape_);
 }
 
 
 void result_blend_filter::process(job_type& job) {	
 	auto virtual_out = job.out(virtual_image_output);
+	auto virtual_out_mask = job.out(virtual_mask_output);
 	auto left_image_in = job.in(left_image_input);
 	auto left_depth_in = job.in(left_depth_input);
+	auto left_mask_in = job.in(left_mask_input);
 	auto right_image_in = job.in(right_image_input);
 	auto right_depth_in = job.in(right_depth_input);
+	auto right_mask_in = job.in(right_mask_input);
 	
 	real left_weight, right_weight;
 	std::tie(left_weight, right_weight) = weights_(job);	
@@ -58,24 +62,28 @@ void result_blend_filter::process(job_type& job) {
 	bool prefer_right = (right_weight >= left_weight);
 	
 	for(auto coord : make_ndspan(shape_)) {
-		masked_color_type left_color = left_image_in.at(coord);
-		masked_real_depth_type left_depth = left_depth_in.at(coord);
-		masked_color_type right_color = right_image_in.at(coord);
-		masked_real_depth_type right_depth = right_depth_in.at(coord);
-		
-		masked_color_type virtual_color;
+		color_type left_color = left_image_in.at(coord);
+		real_depth_type left_depth = left_depth_in.at(coord);
+		mask_type left_mask = left_mask_in.at(coord);
 
-		if(left_color.is_null() && right_color.is_null()) {
-			virtual_color = nullelem;
-		} else if(left_color.is_null() || (left_color.get_flag(unstable_pixel_flag) && prefer_right)) {
+		color_type right_color = right_image_in.at(coord);
+		real_depth_type right_depth = right_depth_in.at(coord);
+		mask_type right_mask = right_mask_in.at(coord);
+	
+		color_type virtual_color;
+		mask_type virtual_mask = 1;
+
+		if(left_mask == hole_pixel_mask && right_mask == hole_pixel_mask) {
+			virtual_mask = 0;
+		} else if(left_mask == hole_pixel_mask || (left_mask == unstable_pixel_mask && prefer_right)) {
 			virtual_color = right_color;
-		} else if(right_color.is_null() || (right_color.get_flag(unstable_pixel_flag) && prefer_left)) {
+		} else if(right_mask == hole_pixel_mask || (right_mask == unstable_pixel_mask && prefer_left)) {
 			virtual_color = left_color;
 		} else {
-			bool has_depth = (! left_depth.is_null() && ! right_depth.is_null());
-			real depth_difference = std::abs(left_depth.get() - right_depth.get());
+			bool has_depth = (left_mask == stable_pixel_mask && right_mask == stable_pixel_mask);
+			real depth_difference = std::abs(left_depth - right_depth);
 			if(has_depth && depth_blending && depth_difference > depth_blending_minimal_difference) {
-				if(left_depth.get() < right_depth.get()) virtual_color = left_color;
+				if(left_depth < right_depth) virtual_color = left_color;
 				else virtual_color = right_color;
 			} else {
 				virtual_color = color_blend(left_color, left_weight, right_color, right_weight);

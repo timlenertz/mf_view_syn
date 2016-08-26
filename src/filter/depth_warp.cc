@@ -25,18 +25,26 @@ namespace vs {
 
 using namespace mf;
 
-void depth_warp_filter::process_frame
-(const input_view_type& source_depth_in, const output_view_type& dest_depth_out, job_type& job) {
+void depth_warp_filter::setup() {
+	depth_output.define_frame_shape(depth_input.frame_shape());
+	depth_mask_output.define_frame_shape(depth_input.frame_shape());
+}
+
+
+void depth_warp_filter::process(job_type& job) {
 	auto source_cam = job.param(source_camera);
 	auto dest_cam = job.param(destination_camera);
 
-	std::fill(dest_depth_out.begin(), dest_depth_out.end(), nullelem);
-
+	auto source_depth_in = job.in(depth_input);
+	auto dest_depth_out = job.out(depth_output);
+	auto dest_depth_mask_out = job.out(depth_mask_output);
+	
 	Eigen_projective3 homography = homography_transformation(source_cam, dest_cam);
+	
+	std::fill(dest_depth_mask_out.begin(), dest_depth_mask_out.end(), 0);
 
 	for(auto source_pix_coord : make_ndspan(source_depth_in.shape())) {
-		masked_real_depth_type source_pix_depth = source_depth_in.at(source_pix_coord);
-		if(source_pix_depth.is_null()) continue;
+		integral_depth_type source_pix_depth = source_depth_in.at(source_pix_coord);
 
 		real source_depth = source_cam.to_depth(source_pix_depth);
 		auto source_coord = source_cam.to_image(source_pix_coord);
@@ -49,11 +57,15 @@ void depth_warp_filter::process_frame
 		auto dest_pix_coord = dest_cam.to_pixel(dest_3coord.head(2));
 
 		if(dest_cam.image_span().includes(dest_pix_coord)) {
-			masked_real_depth_type& output_dest_depth = dest_depth_out.at(dest_pix_coord);
-			if(output_dest_depth.is_null() || dest_depth > output_dest_depth.elem)
+			real_depth_type& output_dest_depth = dest_depth_out.at(dest_pix_coord);
+			mask_type& output_dest_depth_mask = dest_depth_mask_out.at(dest_pix_coord);
+			if(!output_dest_depth_mask || dest_depth > output_dest_depth) {
 				output_dest_depth = dest_depth;
+				output_dest_depth_mask = 1;
+			}
 		}
 	}
 }
+
 
 }
