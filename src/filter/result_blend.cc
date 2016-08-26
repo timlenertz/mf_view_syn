@@ -21,6 +21,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "result_blend.h"
 #include <tuple>
 
+#include <mf/io/image_export.h>
+
+
 namespace vs {
 
 using namespace mf;
@@ -64,23 +67,23 @@ void result_blend_filter::process(job_type& job) {
 	for(auto coord : make_ndspan(shape_)) {
 		color_type left_color = left_image_in.at(coord);
 		real_depth_type left_depth = left_depth_in.at(coord);
-		mask_type left_mask = left_mask_in.at(coord);
+		tri_mask_type left_mask = left_mask_in.at(coord);
 
 		color_type right_color = right_image_in.at(coord);
 		real_depth_type right_depth = right_depth_in.at(coord);
-		mask_type right_mask = right_mask_in.at(coord);
+		tri_mask_type right_mask = right_mask_in.at(coord);
 	
 		color_type virtual_color;
-		mask_type virtual_mask = 1;
+		mask_type virtual_mask = mask_set;
 
-		if(left_mask == hole_pixel_mask && right_mask == hole_pixel_mask) {
-			virtual_mask = 0;
-		} else if(left_mask == hole_pixel_mask || (left_mask == unstable_pixel_mask && prefer_right)) {
+		if(left_mask == tri_mask_clear && right_mask == tri_mask_clear) {
+			virtual_mask = mask_clear;
+		} else if(left_mask == tri_mask_clear || (left_mask == tri_mask_unstable && prefer_right)) {
 			virtual_color = right_color;
-		} else if(right_mask == hole_pixel_mask || (right_mask == unstable_pixel_mask && prefer_left)) {
+		} else if(right_mask == tri_mask_clear || (right_mask == tri_mask_unstable && prefer_left)) {
 			virtual_color = left_color;
 		} else {
-			bool has_depth = (left_mask == stable_pixel_mask && right_mask == stable_pixel_mask);
+			bool has_depth = (left_mask == tri_mask_stable && right_mask == tri_mask_stable);
 			real depth_difference = std::abs(left_depth - right_depth);
 			if(has_depth && depth_blending && depth_difference > depth_blending_minimal_difference) {
 				if(left_depth < right_depth) virtual_color = left_color;
@@ -91,8 +94,8 @@ void result_blend_filter::process(job_type& job) {
 		}
 		
 		virtual_out.at(coord) = virtual_color;
+		virtual_out_mask.at(coord) = virtual_mask;
 	}
-
 }
 
 

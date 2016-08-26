@@ -37,7 +37,7 @@ public:
 	input_type<2, mask_type> image_mask_input;
 	
 	output_type<2, color_type> image_output;
-	output_type<2, mask_type> image_mask_output;
+	output_type<2, tri_mask_type> image_mask_output;
 
 	parameter_type<bool> right_side;
 	

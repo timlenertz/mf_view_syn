@@ -23,6 +23,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/image/masked_image_view.h>
 #include <mf/image/kernel.h>
 
+#include <mf/io/image_export.h>
+
 namespace vs {
 
 using namespace mf;
@@ -67,11 +69,14 @@ void image_post_process_filter::process(job_type& job) {
 
 	auto in = job.in(image_input);
 	auto in_mask = job.in(image_mask_input);
-	auto out = job.in(image_output);
-	auto out_mask = job.in(image_mask_output);
+	auto out = job.out(image_output);
+	auto out_mask = job.out(image_mask_output);
 	
 	masked_image_view<color_type, mask_type> in_img(in, in_mask);
-	masked_image_view<color_type, mask_type> out_img(out, out_mask);
+	masked_image_view<color_type, tri_mask_type> out_img(out, out_mask);
+/*
+	static_assert(tri_mask_clear == mask_clear, "tri_mask_clear == mask_clear");
+	static_assert(tri_mask_stable == mask_set, "tri_mask_stable == mask_set");
 
 	cv::Mat_<uchar> bound;
 	cv::bitwise_not(in_img.cv_mask_mat(), bound);
@@ -83,10 +88,10 @@ void image_post_process_filter::process(job_type& job) {
 	cv::dilate(bound, bound, kernel);
 
 	cv::bitwise_and(in_img.cv_mask_mat(), bound, bound);
-
+*/
 	out = in;
 	out_mask = in_mask;
-	out_img.cv_mask_mat().setTo(unstable_pixel_mask, bound);
+	//out_img.cv_mask_mat().setTo(tri_mask_unstable, bound);
 }
 
 

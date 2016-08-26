@@ -23,6 +23,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/opencv.h>
 #include <mf/image/masked_image_view.h>
 
+#include <mf/io/image_export.h>
+
+
 namespace vs {
 
 using namespace mf;
@@ -35,7 +38,7 @@ void result_post_process_filter::setup() {
 void result_post_process_filter::process(job_type& job) {
 	auto in = job.in(image_input);
 	auto in_mask = job.in(image_mask_input);
-	auto out = job.out(image_output);
+	auto out = job.out(image_output);	
 
 	double inpaint_radius = 10.0;
 	cv::Vec<uchar, 3> inpaint_background(0, 128, 128);

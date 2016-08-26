@@ -21,6 +21,10 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "depth_warp.h"
 #include <algorithm>
 
+#include <mf/image/masked_image_view.h>
+#include <mf/io/image_export.h>
+
+
 namespace vs {
 
 using namespace mf;
@@ -41,7 +45,7 @@ void depth_warp_filter::process(job_type& job) {
 	
 	Eigen_projective3 homography = homography_transformation(source_cam, dest_cam);
 	
-	std::fill(dest_depth_mask_out.begin(), dest_depth_mask_out.end(), 0);
+	std::fill(dest_depth_mask_out.begin(), dest_depth_mask_out.end(), mask_clear);
 
 	for(auto source_pix_coord : make_ndspan(source_depth_in.shape())) {
 		integral_depth_type source_pix_depth = source_depth_in.at(source_pix_coord);
@@ -59,9 +63,9 @@ void depth_warp_filter::process(job_type& job) {
 		if(dest_cam.image_span().includes(dest_pix_coord)) {
 			real_depth_type& output_dest_depth = dest_depth_out.at(dest_pix_coord);
 			mask_type& output_dest_depth_mask = dest_depth_mask_out.at(dest_pix_coord);
-			if(!output_dest_depth_mask || dest_depth > output_dest_depth) {
+			if(output_dest_depth_mask == mask_clear || dest_depth > output_dest_depth) {
 				output_dest_depth = dest_depth;
-				output_dest_depth_mask = 1;
+				output_dest_depth_mask = mask_set;
 			}
 		}
 	}

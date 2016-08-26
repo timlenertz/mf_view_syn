@@ -154,7 +154,7 @@ void view_synthesis::run() {
 	/*graph_.callback_function = [](time_unit t) {
 		std::cout << "frame " << t << "..." << std::endl;
 	};*/
-	//graph_.run();
+	graph_.run();
 }
 
 

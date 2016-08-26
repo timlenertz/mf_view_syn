@@ -39,7 +39,7 @@ private:
 	struct branch_outputs {
 		mf::flow::filter_output<2, color_type>* image_output;
 		mf::flow::filter_output<2, real_depth_type>* depth_output;
-		mf::flow::filter_output<2, mask_type>* mask_output;
+		mf::flow::filter_output<2, tri_mask_type>* mask_output;
 	};
 	
 	rs_config_reader config_;

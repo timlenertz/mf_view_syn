@@ -36,11 +36,11 @@ private:
 public:
 	input_type<2, color_type> left_image_input;
 	input_type<2, real_depth_type> left_depth_input;
-	input_type<2, mask_type> left_mask_input;
+	input_type<2, tri_mask_type> left_mask_input;
 	
 	input_type<2, color_type> right_image_input;
 	input_type<2, real_depth_type> right_depth_input;
-	input_type<2, mask_type> right_mask_input;
+	input_type<2, tri_mask_type> right_mask_input;
 
 	output_type<2, color_type> virtual_image_output;
 	output_type<2, mask_type> virtual_mask_output;

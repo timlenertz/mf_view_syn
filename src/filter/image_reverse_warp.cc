@@ -20,6 +20,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 #include "image_reverse_warp.h"
 
+#include <mf/io/image_export.h>
+
+
 namespace vs {
 
 using namespace mf;
@@ -36,20 +39,21 @@ void image_reverse_warp_filter::process(job_type& job) {
 	auto source_image_in = job.in(source_image_input);
 	auto dest_depth_in = job.in(destination_depth_input);
 	auto dest_depth_mask_in = job.in(destination_depth_mask_input);
-	
+		
 	auto dest_image_out = job.out(destination_image_output);
 	auto dest_image_mask_out = job.out(destination_image_mask_output);
 	
 	auto source_cam = job.param(source_camera);
 	auto dest_cam = job.param(destination_camera);
 
+
 	Eigen_projective3 reverse_homography = homography_transformation(dest_cam, source_cam);
 	
 	for(auto dest_pix_coord : make_ndspan(shape_)) {
 		real_depth_type dest_depth = dest_depth_in.at(dest_pix_coord);
 		mask_type dest_depth_mask = dest_depth_mask_in.at(dest_pix_coord);
-		if(dest_depth_mask == 0) {
-			dest_image_mask_out.at(dest_pix_coord) = 0;
+		if(dest_depth_mask == mask_clear) {
+			dest_image_mask_out.at(dest_pix_coord) = mask_clear;
 			continue;
 		}
 
@@ -63,9 +67,9 @@ void image_reverse_warp_filter::process(job_type& job) {
 		if(source_cam.image_span().includes(source_pix_coord)) {
 			color_type source_color = source_image_in.at(source_pix_coord);
 			dest_image_out.at(dest_pix_coord) = source_color;
-			dest_image_mask_out.at(dest_pix_coord) = 1;
+			dest_image_mask_out.at(dest_pix_coord) = mask_set;
 		} else {
-			dest_image_mask_out.at(dest_pix_coord) = 0;
+			dest_image_mask_out.at(dest_pix_coord) = mask_clear;
 		}
 	}
 }

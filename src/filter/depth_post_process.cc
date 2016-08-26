@@ -23,6 +23,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/opencv.h>
 #include "../common.h"
 
+#include <mf/io/image_export.h>
+
+
 namespace vs {
 
 using namespace mf;
@@ -39,8 +42,8 @@ void depth_post_process_filter::process(job_type& job) {
 
 	auto in = job.in(depth_input);
 	auto in_mask = job.in(depth_mask_input);
-	auto out = job.in(depth_output);
-	auto out_mask = job.in(depth_mask_output);
+	auto out = job.out(depth_output);
+	auto out_mask = job.out(depth_mask_output);
 
 	masked_image_view<real_depth_type, mask_type> in_img(in, in_mask);
 	masked_image_view<real_depth_type, mask_type> out_img(out, out_mask);
@@ -50,7 +53,7 @@ void depth_post_process_filter::process(job_type& job) {
 
 	in_img.cv_mat().copyTo(depth);
 	cv::bitwise_not(in_img.cv_mask_mat(), holes);
-	depth.setTo(0.0f, holes);
+	depth.setTo(0.0, holes);
 			
 	for(int i = 0; i < iterations; ++i) {
 		cv::Mat_<uchar> added_holes[smooth_iterations];
