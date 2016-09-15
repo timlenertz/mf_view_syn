@@ -22,6 +22,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #define VW_FILTER_RESULT_BLEND_H_
 
 #include <mf/filter/filter.h>
+#include <mf/filter/filter_parameter.h>
 #include <utility>
 #include "../common.h"
 
@@ -60,7 +61,10 @@ public:
 		right_depth_input(*this),
 		right_mask_input(*this),
 		virtual_image_output(*this),
-		virtual_mask_output(*this)
+		virtual_mask_output(*this),
+		left_source_camera(*this),
+		right_source_camera(*this),
+		virtual_camera(*this)
 	{
 		left_image_input.set_name("left im");
 		right_image_input.set_name("right im");
@@ -70,6 +74,9 @@ public:
 		right_mask_input.set_name("right mask");
 		virtual_image_output.set_name("im");
 		virtual_mask_output.set_name("im mask");
+		left_source_camera.set_name("left cam");
+		right_source_camera.set_name("right cam");
+		virtual_camera.set_name("virtual cam");
 	}
 
 	void setup() override;

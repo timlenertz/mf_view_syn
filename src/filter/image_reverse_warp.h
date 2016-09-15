@@ -22,6 +22,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #define VW_FILTER_IMAGE_REVERSE_WARP_H_
 
 #include <mf/filter/filter.h>
+#include <mf/filter/filter_parameter.h>
 #include "../common.h"
 
 namespace vs {
@@ -46,13 +47,17 @@ public:
 		destination_depth_input(*this),
 		destination_depth_mask_input(*this),
 		destination_image_output(*this),
-		destination_image_mask_output(*this)
+		destination_image_mask_output(*this),
+		source_camera(*this),
+		destination_camera(*this)
 	{
 		source_image_input.set_name("im");
 		destination_depth_input.set_name("di");
 		destination_depth_mask_input.set_name("di mask");
 		destination_image_output.set_name("im");
 		destination_image_mask_output.set_name("im mask");
+		source_camera.set_name("source cam");
+		destination_camera.set_name("dest cam");
 	}
 	
 	void setup() override;

@@ -28,11 +28,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "filter/result_post_process.h"
 #include <mf/filter/exporter.h>
 #include <mf/filter/importer.h>
-#include <mf/flow/async_node.h>
 #include <mf/io/yuv_importer.h>
 #include <mf/io/raw_video_exporter.h>
-#include <mf/flow/sync_node.h>
-#include <mf/flow/graph_visualization.h>
 
 #include <iostream>
 
@@ -80,8 +77,8 @@ view_synthesis::branch_outputs view_synthesis::setup_branch_(bool right_side) {
 	
 	auto& depth_warp = graph_.add_filter<depth_warp_filter>();
 	depth_warp.set_name(side_name + "depth warp");
-	depth_warp.source_camera.set_constant(source_camera);
-	depth_warp.destination_camera.set_constant(destination_camera);
+	depth_warp.source_camera.set_constant_value(source_camera);
+	depth_warp.destination_camera.set_constant_value(destination_camera);
 	depth_warp.depth_input.connect(depth_source.output, [](ycbcr_color col) { return col.y; });	
 	*camera_parameter_ptr = &depth_warp.source_camera;
 	virtual_camera_parameter_ = &depth_warp.destination_camera;
@@ -93,15 +90,15 @@ view_synthesis::branch_outputs view_synthesis::setup_branch_(bool right_side) {
 	
 	auto& image_warp = graph_.add_filter<image_reverse_warp_filter>();
 	image_warp.set_name(side_name + "image reverse warp");
-	image_warp.source_camera.set_constant(source_camera);
-	image_warp.destination_camera.set_constant(destination_camera);
+	image_warp.source_camera.set_constant_value(source_camera);
+	image_warp.destination_camera.set_constant_value(destination_camera);
 	image_warp.source_image_input.connect(image_source.output, color_convert<rgb_color, ycbcr_color>);	
 	image_warp.destination_depth_input.connect(depth_post.depth_output);
 	image_warp.destination_depth_mask_input.connect(depth_post.depth_mask_output);
 	
 	auto& image_post = graph_.add_filter<image_post_process_filter>();
 	image_post.set_name(side_name + "image refine");
-	image_post.right_side.set_constant(right_side);
+	image_post.right_side.set_constant_value(right_side);
 	image_post.image_input.connect(image_warp.destination_image_output);
 	image_post.image_mask_input.connect(image_warp.destination_image_mask_output);
 	
@@ -145,8 +142,6 @@ void view_synthesis::setup() {
 	sink.input.connect(result_post.image_output);
 	
 	graph_.setup();
-	
-	export_graph_visualization(*graph_.node_graph_, "graph.gv");
 }
 
 

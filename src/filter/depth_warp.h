@@ -22,6 +22,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #define VW_FILTER_DEPTH_WARP_H_
 
 #include <mf/filter/filter.h>
+#include <mf/filter/filter_parameter.h>
 #include "../common.h"
 
 namespace vs {
@@ -38,11 +39,15 @@ public:
 	depth_warp_filter() :
 		depth_input(*this),
 		depth_output(*this),
-		depth_mask_output(*this)
+		depth_mask_output(*this),
+		source_camera(*this),
+		destination_camera(*this)
 	{
 		depth_input.set_name("di");
 		depth_output.set_name("di mask");
 		depth_mask_output.set_name("di");
+		source_camera.set_name("source cam");
+		destination_camera.set_name("dest cam");
 	}
 
 	void setup() override;

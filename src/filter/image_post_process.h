@@ -22,6 +22,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #define VW_FILTER_IMAGE_POST_PROCESS_H_
 
 #include <mf/filter/filter.h>
+#include <mf/filter/filter_parameter.h>
 #include <mf/opencv.h>
 #include "../common.h"
 
@@ -45,12 +46,14 @@ public:
 		image_input(*this),
 		image_mask_input(*this),
 		image_output(*this),
-		image_mask_output(*this)
+		image_mask_output(*this),
+		right_side(*this)
 	{
 		image_input.set_name("in");
 		image_mask_input.set_name("in mask");
 		image_output.set_name("out");
 		image_mask_output.set_name("out mask");
+		right_side.set_name("right");
 	}
 
 	void setup() override;
