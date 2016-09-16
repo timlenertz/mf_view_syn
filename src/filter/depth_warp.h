@@ -44,8 +44,8 @@ public:
 		destination_camera(*this)
 	{
 		depth_input.set_name("di");
-		depth_output.set_name("di mask");
-		depth_mask_output.set_name("di");
+		depth_output.set_name("di");
+		depth_mask_output.set_name("di mask");
 		source_camera.set_name("source cam");
 		destination_camera.set_name("dest cam");
 	}

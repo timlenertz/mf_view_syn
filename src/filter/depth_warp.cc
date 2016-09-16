@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "depth_warp.h"
 #include <algorithm>
 
+#include <mf/filter/filter_job.h>
 #include <mf/image/masked_image_view.h>
 #include <mf/io/image_export.h>
 

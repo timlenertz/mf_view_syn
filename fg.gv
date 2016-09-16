@@ -1,0 +1,75 @@
+digraph G{
+	rankdir=TB
+	filter0 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD COLSPAN="1" BORDER="1" CELLPADDING="4">left image source<BR/><FONT POINT-SIZE="10">&nbsp;</FONT></TD></TR><TR><TD COLSPAN="1" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out1"><FONT POINT-SIZE="10">out</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter2 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD COLSPAN="1" BORDER="1" CELLPADDING="4">left depth source<BR/><FONT POINT-SIZE="10">&nbsp;</FONT></TD></TR><TR><TD COLSPAN="1" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out3"><FONT POINT-SIZE="10">out</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter4 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in5"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="3" BORDER="1" CELLPADDING="4">left depth warp<BR/><FONT POINT-SIZE="10">&nbsp;</FONT><BR/><BR/>&#x25A0;<FONT POINT-SIZE="10">det: source cam</FONT><BR/>&#x25A0;<FONT POINT-SIZE="10">det: dest cam</FONT><BR/></TD></TR><TR><TD COLSPAN="3" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out6"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out7"><FONT POINT-SIZE="10">di mask</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter8 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in9"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in10"><FONT POINT-SIZE="10">di mask</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="5" BORDER="1" CELLPADDING="4">left depth refine<BR/><FONT POINT-SIZE="10">&nbsp;</FONT></TD></TR><TR><TD COLSPAN="5" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out11"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out12"><FONT POINT-SIZE="10">di mask</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter13 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in14"><FONT POINT-SIZE="10">im</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in15"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in16"><FONT POINT-SIZE="10">di mask</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="7" BORDER="1" CELLPADDING="4">left image reverse warp<BR/><FONT POINT-SIZE="10">&nbsp;</FONT><BR/><BR/>&#x25A0;<FONT POINT-SIZE="10">det: source cam</FONT><BR/>&#x25A0;<FONT POINT-SIZE="10">det: dest cam</FONT><BR/></TD></TR><TR><TD COLSPAN="7" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out17"><FONT POINT-SIZE="10">im</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out18"><FONT POINT-SIZE="10">im mask</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter19 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in20"><FONT POINT-SIZE="10">in</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in21"><FONT POINT-SIZE="10">in mask</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="5" BORDER="1" CELLPADDING="4">left image refine<BR/><FONT POINT-SIZE="10">&nbsp;prefetch = 5</FONT><BR/><BR/>&#x25A0;<FONT POINT-SIZE="10">det: right</FONT><BR/></TD></TR><TR><TD COLSPAN="5" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out22"><FONT POINT-SIZE="10">out</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out23"><FONT POINT-SIZE="10">out mask</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter24 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD COLSPAN="1" BORDER="1" CELLPADDING="4">right image source<BR/><FONT POINT-SIZE="10">&nbsp;</FONT></TD></TR><TR><TD COLSPAN="1" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out25"><FONT POINT-SIZE="10">out</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter26 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD COLSPAN="1" BORDER="1" CELLPADDING="4">right depth source<BR/><FONT POINT-SIZE="10">&nbsp;</FONT></TD></TR><TR><TD COLSPAN="1" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out27"><FONT POINT-SIZE="10">out</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter28 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in29"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="3" BORDER="1" CELLPADDING="4">right depth warp<BR/><FONT POINT-SIZE="10">&nbsp;</FONT><BR/><BR/>&#x25A0;<FONT POINT-SIZE="10">det: source cam</FONT><BR/>&#x25A0;<FONT POINT-SIZE="10">det: dest cam</FONT><BR/></TD></TR><TR><TD COLSPAN="3" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out30"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out31"><FONT POINT-SIZE="10">di mask</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter32 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in33"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in34"><FONT POINT-SIZE="10">di mask</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="5" BORDER="1" CELLPADDING="4">right depth refine<BR/><FONT POINT-SIZE="10">&nbsp;</FONT></TD></TR><TR><TD COLSPAN="5" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out35"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out36"><FONT POINT-SIZE="10">di mask</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter37 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in38"><FONT POINT-SIZE="10">im</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in39"><FONT POINT-SIZE="10">di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in40"><FONT POINT-SIZE="10">di mask</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="7" BORDER="1" CELLPADDING="4">right image reverse warp<BR/><FONT POINT-SIZE="10">&nbsp;</FONT><BR/><BR/>&#x25A0;<FONT POINT-SIZE="10">det: source cam</FONT><BR/>&#x25A0;<FONT POINT-SIZE="10">det: dest cam</FONT><BR/></TD></TR><TR><TD COLSPAN="7" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out41"><FONT POINT-SIZE="10">im</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out42"><FONT POINT-SIZE="10">im mask</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter43 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in44"><FONT POINT-SIZE="10">in</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in45"><FONT POINT-SIZE="10">in mask</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="5" BORDER="1" CELLPADDING="4">right image refine<BR/><FONT POINT-SIZE="10">&nbsp;prefetch = 5</FONT><BR/><BR/>&#x25A0;<FONT POINT-SIZE="10">det: right</FONT><BR/></TD></TR><TR><TD COLSPAN="5" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out46"><FONT POINT-SIZE="10">out</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out47"><FONT POINT-SIZE="10">out mask</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter48 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in49"><FONT POINT-SIZE="10">left im</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in50"><FONT POINT-SIZE="10">left di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in51"><FONT POINT-SIZE="10">left mask</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in52"><FONT POINT-SIZE="10">right im</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in53"><FONT POINT-SIZE="10">right di</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in54"><FONT POINT-SIZE="10">right mask</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="13" BORDER="1" CELLPADDING="4">blend<BR/><FONT POINT-SIZE="10">&nbsp;</FONT><BR/><BR/>&#x25A1;<FONT POINT-SIZE="10">in: left cam &#x2192; left depth warp.source cam</FONT><BR/>&#x25A1;<FONT POINT-SIZE="10">in: right cam &#x2192; right depth warp.source cam</FONT><BR/>&#x25A1;<FONT POINT-SIZE="10">in: virtual cam &#x2192; right depth warp.dest cam</FONT><BR/></TD></TR><TR><TD COLSPAN="13" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out55"><FONT POINT-SIZE="10">im</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out56"><FONT POINT-SIZE="10">im mask</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter57 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in58"><FONT POINT-SIZE="10">im</FONT></TD><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in59"><FONT POINT-SIZE="10">im mask</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="5" BORDER="1" CELLPADDING="4">refine<BR/><FONT POINT-SIZE="10">&nbsp;</FONT></TD></TR><TR><TD COLSPAN="5" BORDER="0"><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="out60"><FONT POINT-SIZE="10">im</FONT></TD><TD WIDTH="20"></TD></TR></TABLE></TD></TR></TABLE>
+>];
+	filter61 [shape=plaintext label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="20"></TD><TD BORDER="1" CELLPADDING="1" PORT="in62"><FONT POINT-SIZE="10">in</FONT></TD><TD WIDTH="20"></TD></TR><TR><TD COLSPAN="3" BORDER="1" CELLPADDING="4">video export<BR/><FONT POINT-SIZE="10">&nbsp;</FONT></TD></TR></TABLE>
+>];
+	filter2:out3 -> filter4:in5 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter4:out6 -> filter8:in9 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter4:out7 -> filter8:in10 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter0:out1 -> filter13:in14 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter8:out11 -> filter13:in15 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter8:out12 -> filter13:in16 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter13:out17 -> filter19:in20 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter13:out18 -> filter19:in21 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter26:out27 -> filter28:in29 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter28:out30 -> filter32:in33 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter28:out31 -> filter32:in34 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter24:out25 -> filter37:in38 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter32:out35 -> filter37:in39 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter32:out36 -> filter37:in40 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter37:out41 -> filter43:in44 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter37:out42 -> filter43:in45 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter19:out22 -> filter48:in49 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter8:out11 -> filter48:in50 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter19:out23 -> filter48:in51 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter43:out46 -> filter48:in52 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter32:out35 -> filter48:in53 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter43:out47 -> filter48:in54 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter48:out55 -> filter57:in58 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter48:out56 -> filter57:in59 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	filter57:out60 -> filter61:in62 [arrowhead="normal", headlabel=<>, fontsize=10, labelangle=45, labeldistance=2.0, ];
+	{rank=source; filter0 filter2 filter24 filter26}
+	{rank=sink; filter61}
+}

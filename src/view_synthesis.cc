@@ -31,6 +31,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/io/yuv_importer.h>
 #include <mf/io/raw_video_exporter.h>
 
+#include <mf/flow/diagnostic/processing_timeline.h>
+#include <mf/flow/diagnostic/processing_timeline_json_exporter.h>
+
 #include <iostream>
 
 namespace vs {
@@ -61,7 +64,7 @@ view_synthesis::branch_outputs view_synthesis::setup_branch_(bool right_side) {
 	auto& depth_source = graph_.add_filter<flow::importer_filter<yuv_importer>>(
 		config_.get_string(depth_file_parameter), shape, yuv_sampling
 	);
-	depth_source.set_name(side_name + "depth source");
+	depth_source.set_name(side_name + "depth source");	
 	
 	depth_projection_parameters dparam;
 	dparam.z_near = config_.get_real(z_near_parameter);
@@ -103,6 +106,7 @@ view_synthesis::branch_outputs view_synthesis::setup_branch_(bool right_side) {
 	image_post.image_mask_input.connect(image_warp.destination_image_mask_output);
 	
 	image_post.set_asynchonous(true);
+	image_post.set_prefetch_duration(5);
 	
 	return branch_outputs {
 		&image_post.image_output,
@@ -118,15 +122,18 @@ void view_synthesis::setup() {
 	
 	auto& blend = graph_.add_filter<result_blend_filter>();
 	blend.set_name("blend");
-	blend.left_source_camera.set_mirror(*left_camera_parameter_);
-	blend.right_source_camera.set_mirror(*right_camera_parameter_);
-	blend.virtual_camera.set_mirror(*virtual_camera_parameter_);
+	blend.left_source_camera.set_reference(*left_camera_parameter_);
+	blend.right_source_camera.set_reference(*right_camera_parameter_);
+	blend.virtual_camera.set_reference(*virtual_camera_parameter_);
 	blend.left_image_input.connect(*left_branch.image_output);
 	blend.left_depth_input.connect(*left_branch.depth_output);
 	blend.left_mask_input.connect(*left_branch.mask_output);
 	blend.right_image_input.connect(*right_branch.image_output);
 	blend.right_depth_input.connect(*right_branch.depth_output);
 	blend.right_mask_input.connect(*right_branch.mask_output);
+	
+//	blend.set_asynchonous(true);
+//	blend.set_prefetch_duration(5);
 	
 	auto& result_post = graph_.add_filter<result_post_process_filter>();
 	result_post.set_name("refine");
@@ -149,7 +156,19 @@ void view_synthesis::run() {
 	/*graph_.callback_function = [](time_unit t) {
 		std::cout << "frame " << t << "..." << std::endl;
 	};*/
-	graph_.run();
+	
+	mf::flow::processing_timeline timeline(*graph_.node_graph_);
+	
+	graph_.node_graph_->set_diagnostic(timeline);
+	
+	graph_.run_for(100);
+	graph_.node_graph_->stop();
+	
+	std::cerr << "stopped" << std::endl;
+	
+	mf::flow::processing_timeline_json_exporter exp(timeline);
+	std::ofstream exp_f("timeline.json");
+	exp.generate(exp_f);
 }
 
 

@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "result_blend.h"
 #include <tuple>
 
+#include <mf/filter/filter_job.h>
 #include <mf/io/image_export.h>
 
 

@@ -20,11 +20,14 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 #include "result_post_process.h"
 #include <algorithm>
+#include <mf/filter/filter_job.h>
 #include <mf/opencv.h>
 #include <mf/image/masked_image_view.h>
 
 #include <mf/io/image_export.h>
 
+#include <thread>
+#include <chrono>
 
 namespace vs {
 
@@ -40,7 +43,7 @@ void result_post_process_filter::process(job_type& job) {
 	auto in_mask = job.in(image_mask_input);
 	auto out = job.out(image_output);	
 
-	double inpaint_radius = 10.0;
+	double inpaint_radius = 3.0;
 	cv::Vec<uchar, 3> inpaint_background(0, 128, 128);
 
 	masked_image_view<color_type, mask_type> in_img(in, in_mask);
@@ -54,7 +57,9 @@ void result_post_process_filter::process(job_type& job) {
 	cv::bitwise_not(in_mask_mat, holes);
 	
 	in_img_mat.setTo(inpaint_background, holes);
-	cv::inpaint(in_img_mat, holes, out_img_mat, inpaint_radius, cv::INPAINT_NS);	
+	cv::inpaint(in_img_mat, holes, out_img_mat, inpaint_radius, cv::INPAINT_NS);
+	
+	//std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 }

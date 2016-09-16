@@ -20,6 +20,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 #include "image_post_process.h"
 #include <mf/opencv.h>
+#include <mf/filter/filter_job.h>
 #include <mf/image/masked_image_view.h>
 #include <mf/image/kernel.h>
 
