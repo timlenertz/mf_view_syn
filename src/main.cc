@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <cstddef>
 #include <iostream>
 
+#include "configuration.h"
 #include "view_synthesis.h"
 
 using namespace vs;

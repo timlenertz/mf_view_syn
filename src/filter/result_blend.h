@@ -24,62 +24,72 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_parameter.h>
 #include <utility>
+#include <vector>
+#include <memory>
 #include "../common.h"
 
 namespace vs {
 
 class result_blend_filter : public mf::flow::filter {
-private:
-	mf::ndsize<2> shape_;
+public:
+	struct input_branch {
+		input_type<2, color_type> image_input;
+		input_type<2, real_depth_type> depth_input;
+		input_type<2, tri_mask_type> mask_input;
+		parameter_type<camera_type> source_camera;
+		
+		input_branch(result_blend_filter& filt, const std::string& name) :
+			image_input(filt),
+			depth_input(filt),
+			mask_input(filt),
+			source_camera(filt)
+		{
+			image_input.set_name(name + " im");
+			depth_input.set_name(name + " di");
+			mask_input.set_name(name + " mask");
+			source_camera.set_name(name + " cam");
+		}
+	};
 	
-	std::pair<mf::real, mf::real> weights_(job_type& job) const;
+private:
+	struct input_branch_selection {
+		input_branch& left;
+		mf::real left_weight;
+		input_branch& right;
+		mf::real right_weight;
+		
+		bool selected(const input_branch& br) const {
+			return (&br == &left) || (&br == &right);
+		}
+	};
+	
+	std::vector<std::unique_ptr<input_branch>> input_branches_;
+	
+	input_branch_selection select_branches_(job_type& job) const;
 
 public:
-	input_type<2, color_type> left_image_input;
-	input_type<2, real_depth_type> left_depth_input;
-	input_type<2, tri_mask_type> left_mask_input;
-	
-	input_type<2, color_type> right_image_input;
-	input_type<2, real_depth_type> right_depth_input;
-	input_type<2, tri_mask_type> right_mask_input;
-
 	output_type<2, color_type> virtual_image_output;
 	output_type<2, mask_type> virtual_mask_output;
-	
-	parameter_type<camera_type> left_source_camera;
-	parameter_type<camera_type> right_source_camera;
 	parameter_type<camera_type> virtual_camera;
 	
+	mf::ndsize<2> shape_;
 	bool depth_blending = true;
 	mf::real depth_blending_minimal_difference = 5.0;
 
 	result_blend_filter() :
-		left_image_input(*this),
-		left_depth_input(*this),
-		left_mask_input(*this),
-		right_image_input(*this),
-		right_depth_input(*this),
-		right_mask_input(*this),
 		virtual_image_output(*this),
 		virtual_mask_output(*this),
-		left_source_camera(*this),
-		right_source_camera(*this),
 		virtual_camera(*this)
 	{
-		left_image_input.set_name("left im");
-		right_image_input.set_name("right im");
-		left_depth_input.set_name("left di");
-		right_depth_input.set_name("right di");
-		left_mask_input.set_name("left mask");
-		right_mask_input.set_name("right mask");
 		virtual_image_output.set_name("im");
 		virtual_mask_output.set_name("im mask");
-		left_source_camera.set_name("left cam");
-		right_source_camera.set_name("right cam");
 		virtual_camera.set_name("virtual cam");
 	}
+	
+	input_branch& add_input_branch(const std::string& name);
 
 	void setup() override;
+	void pre_process(job_type& job) override;	
 	void process(job_type& job) override;	
 };
 

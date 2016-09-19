@@ -28,30 +28,24 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_parameter.h>
 #include "common.h"
-#include "rs_config_reader.h"
+#include "configuration.h"
 
 namespace vs {
 
-class image_post_process_filter;
-
 class view_synthesis {
 private:
-	struct branch_outputs {
-		mf::flow::filter_output<2, color_type>* image_output;
-		mf::flow::filter_output<2, real_depth_type>* depth_output;
-		mf::flow::filter_output<2, tri_mask_type>* mask_output;
+	struct branch_end {
+		mf::flow::filter_output<2, color_type>& image_output;
+		mf::flow::filter_output<2, real_depth_type>& depth_output;
+		mf::flow::filter_output<2, tri_mask_type>& mask_output;
+		mf::flow::filter_parameter<camera_type>& source_camera;
 	};
 	
-	rs_config_reader config_;
+	configuration configuration_;
 	mf::flow::filter_graph graph_;
 	
-	mf::flow::filter_parameter<camera_type>* left_camera_parameter_ = nullptr;
-	mf::flow::filter_parameter<camera_type>* right_camera_parameter_ = nullptr;
-	mf::flow::filter_parameter<camera_type>* virtual_camera_parameter_ = nullptr;
-	
+	branch_end setup_branch_(const configuration::input_view&);	
 		
-	branch_outputs setup_branch_(bool right_side);
-	
 public:
 	explicit view_synthesis(const std::string& configuration_file);
 

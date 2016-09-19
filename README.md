@@ -1,3 +1,3 @@
 # MF View Synthesis
 
-VSRS reimplementation based on mf framework
+View synthesis application based on mf framework

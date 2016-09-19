@@ -1,0 +1,49 @@
+{
+	"input" : {
+		"format" : {
+			"width" : 1920,
+			"height" : 1080,
+			"number_of_frames" : 200,
+			"depth_z_near" : 15.0,
+			"depth_z_far" : 100.0
+		},
+		"camera_description_file" : "poznan_blocks_cam.txt",
+		"views" : [
+			{
+				"camera_name" : "param_cam2",
+				"image_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_texture_cam2.yuv",
+				"depth_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_depth_cf420_8bps_cam2.yuv"
+			},
+			{
+				"camera_name" : "param_cam3",
+				"image_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_texture_cam3.yuv",
+				"depth_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_depth_cf420_8bps_cam3.yuv"
+			},
+			{
+				"camera_name" : "param_cam4",
+				"image_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_texture_cam4.yuv",
+				"depth_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_depth_cf420_8bps_cam4.yuv"
+			},
+			{
+				"camera_name" : "param_cam5",
+				"image_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_texture_cam5.yuv",
+				"depth_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_depth_cf420_8bps_cam5.yuv"
+			},
+			{
+				"camera_name" : "param_cam6",
+				"image_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_texture_cam6.yuv",
+				"depth_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_depth_cf420_8bps_cam6.yuv"
+			},
+			{
+				"camera_name" : "param_cam7",
+				"image_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_texture_cam7.yuv",
+				"depth_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_depth_cf420_8bps_cam7.yuv"
+			}
+		]
+	},
+	
+	"output" : {
+		"image_sequence_file" : "output.rgb",
+		"frames_per_second" : 20.0
+	}
+}

@@ -20,6 +20,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 #include "result_blend.h"
 #include <tuple>
+#include <algorithm>
 
 #include <mf/filter/filter_job.h>
 #include <mf/io/image_export.h>
@@ -29,39 +30,93 @@ namespace vs {
 
 using namespace mf;
 
-std::pair<real, real> result_blend_filter::weights_(job_type& job) const {
-	const auto& left_cam = job.param(left_source_camera);
-	const auto& right_cam = job.param(right_source_camera);
-	const auto& virtual_cam = job.param(virtual_camera);
 
-	real left_distance = (left_cam.absolute_pose().position - virtual_cam.absolute_pose().position).norm();
-	real right_distance = (right_cam.absolute_pose().position - virtual_cam.absolute_pose().position).norm();
-	real sum = left_distance + right_distance;
+auto result_blend_filter::select_branches_(job_type& job) const -> input_branch_selection {
+	Eigen_vec3 virtual_position = job.param(virtual_camera).absolute_pose().position;
+
+	auto position = [&job](const input_branch& br) {
+		return job.param(br.source_camera).absolute_pose().position;
+	};
+	auto distance = [&virtual_position, &position](const input_branch& br) {
+		return (position(br) - virtual_position).norm();
+	};
+	auto cmp = [&distance](const input_branch* a, const input_branch* b) {
+		return (distance(*a) < distance(*b));
+	};
 	
-	return { left_distance / sum, right_distance / sum };
+	// Set 2 branches whose source camera is closest to the virtual camera
+	// (distances of camera centers are compared)
+	std::vector<input_branch*> branches;
+	for(auto&& br : input_branches_) branches.push_back(br.get());
+	std::nth_element(branches.begin(), branches.begin() + 1, branches.end(), cmp);
+	input_branch* left_branch = branches[0];
+	input_branch* right_branch = branches[1];
+	
+	// Determine left/right (X coordinate)
+	if(position(*left_branch)[0] > position(*right_branch)[0]) std::swap(left_branch, right_branch);
+	
+	// Calculate weights from distance
+	real left_distance = distance(*left_branch);
+	real right_distance = distance(*right_branch);
+	real sum_distance = left_distance + right_distance;
+	real left_weight = left_distance / sum_distance;
+	real right_weight = right_distance / sum_distance;
+	
+	return input_branch_selection {
+		*left_branch,
+		left_weight,
+		*right_branch,
+		right_weight
+	};
+}
+
+
+auto result_blend_filter::add_input_branch(const std::string& name) -> input_branch& {
+	input_branch* br = new input_branch(*this, name);
+	input_branches_.emplace_back(br);
+	return *br;
 }
 
 
 void result_blend_filter::setup() {
-	Assert(left_image_input.frame_shape() == right_image_input.frame_shape());
-	shape_ = left_image_input.frame_shape();
+	Assert(input_branches_.size() >= 2);
+	shape_ = input_branches_.front()->image_input.frame_shape();
 	virtual_image_output.define_frame_shape(shape_);
 	virtual_mask_output.define_frame_shape(shape_);
+	
+	for(auto&& br : input_branches_) {
+		br->image_input.set_activated(false);
+		br->depth_input.set_activated(false);
+		br->mask_input.set_activated(false);
+	}
+}
+
+
+void result_blend_filter::pre_process(job_type& job) {
+	input_branch_selection sel = select_branches_(job);
+	for(auto&& br : input_branches_) {
+		bool act = sel.selected(*br);
+		br->image_input.set_activated(act);
+		br->depth_input.set_activated(act);
+		br->mask_input.set_activated(act);
+	}
 }
 
 
 void result_blend_filter::process(job_type& job) {	
+	input_branch_selection sel = select_branches_(job);
+
 	auto virtual_out = job.out(virtual_image_output);
 	auto virtual_out_mask = job.out(virtual_mask_output);
-	auto left_image_in = job.in(left_image_input);
-	auto left_depth_in = job.in(left_depth_input);
-	auto left_mask_in = job.in(left_mask_input);
-	auto right_image_in = job.in(right_image_input);
-	auto right_depth_in = job.in(right_depth_input);
-	auto right_mask_in = job.in(right_mask_input);
+	auto left_image_in = job.in(sel.left.image_input);
+	auto left_depth_in = job.in(sel.left.depth_input);
+	auto left_mask_in = job.in(sel.left.mask_input);
+	auto right_image_in = job.in(sel.right.image_input);
+	auto right_depth_in = job.in(sel.right.depth_input);
+	auto right_mask_in = job.in(sel.right.mask_input);
 	
-	real left_weight, right_weight;
-	std::tie(left_weight, right_weight) = weights_(job);	
+	real left_weight = sel.left_weight;
+	real right_weight = sel.right_weight;
 	bool prefer_left = (left_weight >= right_weight);
 	bool prefer_right = (right_weight >= left_weight);
 	
