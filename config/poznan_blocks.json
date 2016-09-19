@@ -7,7 +7,7 @@
 			"depth_z_near" : 15.0,
 			"depth_z_far" : 100.0
 		},
-		"camera_description_file" : "poznan_blocks_cam.txt",
+		"camera_description_file" : "config/poznan_blocks_cam.txt",
 		"views" : [
 			{
 				"camera_name" : "param_cam2",

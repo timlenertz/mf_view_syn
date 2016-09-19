@@ -100,6 +100,8 @@ void result_blend_filter::pre_process(job_type& job) {
 		br->depth_input.set_activated(act);
 		br->mask_input.set_activated(act);
 	}
+	job.send_param(sel.right.right_side_sent, true);
+	job.send_param(sel.left.right_side_sent, false);
 }
 
 

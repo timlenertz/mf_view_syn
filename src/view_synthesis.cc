@@ -51,11 +51,11 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 	int yuv_sampling = 420;
 
 	auto& image_source = graph_.add_filter<flow::importer_filter<yuv_importer>>(
-		view.image_sequence_file, shape, yuv_sampling
+		view.image_sequence_file, flip(shape), yuv_sampling
 	);
 	image_source.set_name(view.name + "image source");
 	auto& depth_source = graph_.add_filter<flow::importer_filter<yuv_importer>>(
-		view.depth_sequence_file, shape, yuv_sampling
+		view.depth_sequence_file, flip(shape), yuv_sampling
 	);
 	depth_source.set_name(view.name + "depth source");	
 	
@@ -71,16 +71,17 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 	depth_post.depth_mask_input.connect(depth_warp.depth_mask_output);
 	
 	auto& image_warp = graph_.add_filter<image_reverse_warp_filter>();
-	image_warp.set_name(view.name + "image reverse warp");
-	image_warp.source_camera.set_reference(depth_warp.source_camera);
-	image_warp.destination_camera.set_reference(depth_warp.destination_camera);
+	image_warp.set_name(view.name + "image reverse warp");	
 	image_warp.source_image_input.connect(image_source.output, color_convert<rgb_color, ycbcr_color>);	
 	image_warp.destination_depth_input.connect(depth_post.depth_output);
 	image_warp.destination_depth_mask_input.connect(depth_post.depth_mask_output);
+	image_warp.source_camera.set_reference(depth_warp.source_camera);
+	image_warp.destination_camera.set_reference(depth_warp.destination_camera);
+
 	
 	auto& image_post = graph_.add_filter<image_post_process_filter>();
 	image_post.set_name(view.name + "image refine");
-	image_post.right_side.set_constant_value(false); //// 
+	image_post.right_side.set_dynamic(false);
 	image_post.image_input.connect(image_warp.destination_image_output);
 	image_post.image_mask_input.connect(image_warp.destination_image_mask_output);
 	
@@ -91,7 +92,8 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 		image_post.image_output,
 		depth_post.depth_output,
 		image_post.image_mask_output,
-		depth_warp.source_camera
+		depth_warp.source_camera,
+		image_post.right_side
 	};
 }
 
@@ -99,9 +101,9 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 void view_synthesis::setup() {	
 	auto& blend = graph_.add_filter<result_blend_filter>();
 	blend.set_name("blend");
+	blend.virtual_camera.set_value_function(configuration_.virtual_camera());
 	
-	
-	for(std::ptrdiff_t i = 0; i < configuration_.input_views_count(); ++i) {
+	for(std::ptrdiff_t i = 0; i < configuration_.input_views_count(); ++i) {		
 		configuration::input_view view = configuration_.input_view_at(i);
 		branch_end b_end = setup_branch_(view);
 		result_blend_filter::input_branch& b_in = blend.add_input_branch(view.name);
@@ -110,6 +112,8 @@ void view_synthesis::setup() {
 		b_in.depth_input.connect(b_end.depth_output);
 		b_in.mask_input.connect(b_end.mask_output);
 		b_in.source_camera.set_reference(b_end.source_camera);
+		//b_in.source_camera.set_constant_value(b_end.source_camera.deterministic_value(0));
+		b_in.right_side_sent.set_sent_reference(b_end.right_side);
 	}	
 		
 //	blend.set_asynchonous(true);

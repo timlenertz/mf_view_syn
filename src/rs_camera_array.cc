@@ -71,7 +71,7 @@ rs_camera_array::rs_camera_array
 			file >> unused >> unused >> unused;
 			continue;
 		}
-		
+
 		cameras_.insert(std::make_pair(
 			name,
 			read_camera_(file, dparam, img_sz)

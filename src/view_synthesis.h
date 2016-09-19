@@ -39,6 +39,7 @@ private:
 		mf::flow::filter_output<2, real_depth_type>& depth_output;
 		mf::flow::filter_output<2, tri_mask_type>& mask_output;
 		mf::flow::filter_parameter<camera_type>& source_camera;
+		mf::flow::filter_parameter<bool>& right_side;
 	};
 	
 	configuration configuration_;

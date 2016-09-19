@@ -1,7 +1,9 @@
 #include "configuration.h"
 #include "rs_camera_array.h"
+#include <mf/geometry/math_constants.h>
 #include <string>
 #include <cmath>
+#include <fstream>
 
 namespace vs {
 
@@ -25,8 +27,10 @@ rs_camera_array& configuration::camera_array_() const {
 }
 
 
-configuration::configuration(const std::string& filename) :
-	json_(filename) { }
+configuration::configuration(const std::string& filename) {		
+	std::ifstream fstr(filename);
+	fstr >> json_;
+}
 
 
 configuration::~configuration() { }
@@ -48,8 +52,9 @@ auto configuration::input_view_at(std::ptrdiff_t i) const -> input_view {
 	rs_camera_array& cam_arr = camera_array_();
 	
 	auto shape = input_shape();
-	
-	camera_type cam(cam_arr[vw["camera_name"]], flip(shape));
+		
+	std::string cam_name = vw["camera_name"];
+	camera_type cam(cam_arr[cam_name], shape);
 	cam.flip_pixel_coordinates();
 	
 	return {
@@ -71,8 +76,11 @@ camera_type configuration::virtual_camera_functor::operator()(time_unit frame_in
 	pose right = configuration_.input_view_at(configuration_.input_views_count() - 1).camera.absolute_pose();
 	
 	real n = configuration_["input"]["format"]["number_of_frames"];
-	real t = -std::cos(frame_index / n) / 2.0 + 0.5;
+	n /= 3.3;
+	real t = std::sin(frame_index * pi / n) / 2.0 + 0.5;
 	pose virtual_pose = interpolate(left, right, t);
+	
+	std::cout << t << std::endl;
 	
 	depth_projection_parameters dparam;
 	dparam.z_near = configuration_["input"]["format"]["depth_z_near"];

@@ -37,17 +37,21 @@ public:
 		input_type<2, real_depth_type> depth_input;
 		input_type<2, tri_mask_type> mask_input;
 		parameter_type<camera_type> source_camera;
+		parameter_type<bool> right_side_sent;
+		
 		
 		input_branch(result_blend_filter& filt, const std::string& name) :
 			image_input(filt),
 			depth_input(filt),
 			mask_input(filt),
-			source_camera(filt)
+			source_camera(filt),
+			right_side_sent(filt)
 		{
 			image_input.set_name(name + " im");
 			depth_input.set_name(name + " di");
 			mask_input.set_name(name + " mask");
 			source_camera.set_name(name + " cam");
+			right_side_sent.set_name(name + " rightside");
 		}
 	};
 	
