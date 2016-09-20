@@ -2,7 +2,7 @@ DEBUG ?= 0
 DIST_DIR := dist
 BUILD_DIR := build
 
-CXX := clang++-3.8
+CXX := ccache clang++-3.8
 CXXFLAGS := -std=c++14
 LDFLAGS := 
 LDLIBS := -lpthread -lm

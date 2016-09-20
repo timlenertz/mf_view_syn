@@ -125,13 +125,23 @@ void view_synthesis::setup() {
 	result_post.image_mask_input.connect(blend.virtual_mask_output);
 
 	auto shape = configuration_.input_shape();
-	auto& sink = graph_.add_filter<flow::exporter_filter<raw_video_exporter<rgb_color>>>(
-		"output.rgb",
-		raw_video_frame_formats::interleaved_rgb()
-	);
-	sink.set_name("video export");
-	sink.input.connect(result_post.image_output);
-	
+	if(configuration_.output_rgb()) {
+		auto& sink = graph_.add_filter<flow::exporter_filter<raw_video_exporter<rgb_color>>>(
+			configuration_["output"]["image_sequence_file"],
+			configuration_.output_rgb_raw_format()
+		);
+		sink.set_name("video export");
+		sink.input.connect(result_post.image_output);
+
+	} else {
+		auto& sink = graph_.add_filter<flow::exporter_filter<raw_video_exporter<ycbcr_color>>>(
+			configuration_["output"]["image_sequence_file"],
+			configuration_.output_ycbcr_raw_format()
+		);
+		sink.set_name("video export");
+		sink.input.connect(result_post.image_output, color_convert<ycbcr_color, rgb_color>);
+	}
+		
 	graph_.setup();
 }
 

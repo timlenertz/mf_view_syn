@@ -1,11 +1,13 @@
 {
 	"input" : {
-		"format" : {
-			"width" : 1920,
-			"height" : 1080,
-			"number_of_frames" : 200,
-			"depth_z_near" : 15.0,
-			"depth_z_far" : 100.0
+		"width" : 1920,
+		"height" : 1080,
+		"number_of_frames" : 200,
+		"depth" : {
+			"z_near" : 15.0,
+			"z_far" : 100.0,
+			"z_flipped" : false,
+			"type" : "disparity"
 		},
 		"camera_description_file" : "config/poznan_blocks_cam.txt",
 		"views" : [
@@ -43,7 +45,10 @@
 	},
 	
 	"output" : {
-		"image_sequence_file" : "output.rgb",
-		"frames_per_second" : 20.0
+		"image_sequence_file" : "output.yuv",
+		"frames_per_second" : 20.0,
+		"format" : "raw",
+		"raw_sampling" : "planar_420",
+		"raw_color" : "ycbcr"
 	}
 }

@@ -3,6 +3,8 @@
 
 #include <string>
 #include <json.hpp>
+#include <mf/geometry/depth_projection_parameters.h>
+#include <mf/io/raw_video_frame_format.h>
 #include <memory>
 #include <string>
 #include "common.h"
@@ -34,6 +36,7 @@ private:
 	mutable std::unique_ptr<rs_camera_array> camera_arr_;
 
 	rs_camera_array& camera_array_() const;
+	mf::depth_projection_parameters depth_projection_() const;
 
 public:
 	explicit configuration(const std::string& filename);
@@ -48,10 +51,17 @@ public:
 		return virtual_camera_functor(*this);
 	}
 	
+	bool output_rgb() const;
+	mf::raw_video_frame_format<mf::rgb_color> output_rgb_raw_format() const;
+	mf::raw_video_frame_format<mf::ycbcr_color> output_ycbcr_raw_format() const;
+	
 	auto operator[](const std::string& key) const {
 		return json_[key];
 	}
 };
+
+
+MF_DEFINE_EXCEPTION(configuration_error, std::runtime_error);
 	
 }
 
