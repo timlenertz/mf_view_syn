@@ -35,8 +35,11 @@ int main(int argc, const char* argv[]) {
 	}
 	
 	std::cout << "setting up..." << std::endl;
-	view_synthesis syn(argv[1]);
+	configuration config(argv[1]);
+	view_synthesis syn(config);
 	syn.setup();
+	
+	std::cout << "output size: " << config.scaled_shape() << std::endl;
 	
 	std::cout << "running..." << std::endl;
 	syn.run();

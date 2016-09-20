@@ -39,16 +39,15 @@ private:
 		mf::flow::filter_output<2, real_depth_type>& depth_output;
 		mf::flow::filter_output<2, tri_mask_type>& mask_output;
 		mf::flow::filter_parameter<camera_type>& source_camera;
-		mf::flow::filter_parameter<bool>& right_side;
 	};
 	
-	configuration configuration_;
+	const configuration& configuration_;
 	mf::flow::filter_graph graph_;
 	
 	branch_end setup_branch_(const configuration::input_view&);	
 		
 public:
-	explicit view_synthesis(const std::string& configuration_file);
+	explicit view_synthesis(const configuration&);
 
 	void setup();
 	void run();

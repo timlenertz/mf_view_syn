@@ -46,8 +46,7 @@ void image_reverse_warp_filter::process(job_type& job) {
 	
 	auto source_cam = job.param(source_camera);
 	auto dest_cam = job.param(destination_camera);
-
-
+	
 	Eigen_projective3 reverse_homography = homography_transformation(dest_cam, source_cam);
 	
 	for(auto dest_pix_coord : make_ndspan(shape_)) {

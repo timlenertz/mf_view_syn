@@ -59,6 +59,19 @@ void image_post_process_filter::erode_right_bounds_(cv::Mat_<uchar>& mat) {
 }
 
 
+bool image_post_process_filter::should_erode_right_(job_type& job) const {
+	camera_type source_cam = job.param(source_camera);
+	camera_type virtual_cam = job.param(virtual_camera);
+
+	return (source_cam.absolute_pose().position[0] > virtual_cam.absolute_pose().position[0]);
+}
+
+
+void image_post_process_filter::configure(const json& j) {
+	kernel_diameter.set_constant_value(j.value("kernel_diameter", 3));
+}
+
+
 void image_post_process_filter::setup() {
 	image_output.define_frame_shape(image_input.frame_shape());
 	image_mask_output.define_frame_shape(image_input.frame_shape());
@@ -66,7 +79,7 @@ void image_post_process_filter::setup() {
 
 
 void image_post_process_filter::process(job_type& job) {
-	int kernel_diameter = 12;
+	int kernel_sz = job.param(kernel_diameter);
 
 	auto in = job.in(image_input);
 	auto in_mask = job.in(image_mask_input);
@@ -75,24 +88,26 @@ void image_post_process_filter::process(job_type& job) {
 	
 	masked_image_view<color_type, mask_type> in_img(in, in_mask);
 	masked_image_view<color_type, tri_mask_type> out_img(out, out_mask);
-/*
+
 	static_assert(tri_mask_clear == mask_clear, "tri_mask_clear == mask_clear");
 	static_assert(tri_mask_stable == mask_set, "tri_mask_stable == mask_set");
 
 	cv::Mat_<uchar> bound;
 	cv::bitwise_not(in_img.cv_mask_mat(), bound);
 
-	if(job.param(right_side)) erode_right_bounds_(bound);
+	if(should_erode_right_(job)) erode_right_bounds_(bound);
 	else erode_left_bounds_(bound);
 
-	auto kernel = to_opencv( disk_image_kernel(kernel_diameter).view() );
+	auto kernel = to_opencv( disk_image_kernel(kernel_sz).view() );
 	cv::dilate(bound, bound, kernel);
-
 	cv::bitwise_and(in_img.cv_mask_mat(), bound, bound);
-*/
+
 	out = in;
 	out_mask = in_mask;
-	//out_img.cv_mask_mat().setTo(tri_mask_unstable, bound);
+	out_img.cv_mask_mat().setTo(tri_mask_unstable, bound);
+
+	image_export(out_img, "img/" + name() + " im.png");
+
 }
 
 

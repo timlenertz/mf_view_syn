@@ -1,0 +1,53 @@
+{
+	"input" : {
+		"width" : 1280,
+		"height" : 768,
+		"number_of_frames" : 121,
+		"scale" : 1.0,
+		"depth" : {
+			"z_near" : 0.2,
+			"z_far" : 700.0,
+			"z_flipped" : false,
+			"type" : "disparity"
+		},
+		"camera_description_file" : "config/bbb_bunny_cam.txt",
+		"views" : {
+			"from" : 5,
+			"to" : 84,
+			"step" : 10,
+			"placeholder" : "#",
+			"placeholder_length" : 2,
+			"camera_name" : "param_ptm#",
+			"image_sequence_file" : "/data/test_sequences/bbb_flowers_noblur/BBB_Flowers_cam00#.yuv",
+			"depth_sequence_file" : "/data/test_sequences/bbb_flowers_noblur/BBB_Flowers_1280x768_Depth_8bps_cf420_cam00#.yuv"
+		}
+	},
+	
+	"synthesis" : {
+		"depth_refine" : {
+			"kernel_diameter" : 5,
+			"outer_iterations" : 2,
+			"inner_smooth_iterations" : 2
+		},
+		"image_refine" : {
+			"kernel_diameter" : 7
+		},
+		"blend" : {
+			"color_blending" : true,
+			"color_blending_maximal_depth_difference" : 0.0,
+			"selected_inputs_count" : 2
+		},
+		"result_refine" : {
+			"inpaint_background_color" : [0, 128, 128],
+			"inpaint_radius" : 3
+		}
+	},
+	
+	"output" : {
+		"image_sequence_file" : "bunny.yuv",
+		"frames_per_second" : 20.0,
+		"format" : "raw",
+		"raw_sampling" : "planar_420",
+		"raw_color" : "ycbcr"
+	}
+}

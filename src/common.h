@@ -24,6 +24,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/common.h>
 #include <mf/camera/projection_image_camera.h>
 #include <mf/color.h>
+#include <json.hpp>
 #include <cstdint>
 
 namespace vs {
@@ -36,6 +37,8 @@ using camera_type = mf::projection_image_camera<integral_depth_type>;
 
 using mask_type = std::uint8_t;
 using tri_mask_type	= std::uint8_t;
+
+using json = nlohmann::json;
 
 constexpr mask_type mask_set = 0xff;
 constexpr mask_type mask_clear = 0x00;

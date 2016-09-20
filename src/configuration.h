@@ -43,6 +43,7 @@ public:
 	~configuration();
 	
 	mf::ndsize<2> input_shape() const;
+	mf::ndsize<2> scaled_shape() const;
 	
 	std::size_t input_views_count() const;
 	input_view input_view_at(std::ptrdiff_t i) const;

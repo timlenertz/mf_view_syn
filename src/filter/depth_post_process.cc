@@ -31,6 +31,13 @@ namespace vs {
 
 using namespace mf;
 
+void depth_post_process_filter::configure(const json& j) {
+	kernel_diameter.set_constant_value(j.value("kernel_diameter", 3));
+	outer_iterations.set_constant_value(j.value("outer_iterations", 2));
+	inner_smooth_iterations.set_constant_value(j.value("inner_smooth_iterations", 2));
+}
+
+
 void depth_post_process_filter::setup() {
 	depth_output.define_frame_shape(depth_input.frame_shape());
 	depth_mask_output.define_frame_shape(depth_input.frame_shape());
@@ -38,14 +45,15 @@ void depth_post_process_filter::setup() {
 
 
 void depth_post_process_filter::process(job_type& job) {
-	int kernel_size = 3;
-	constexpr int iterations = 2, smooth_iterations = 2;
+	const int kernel_sz = job.param(kernel_diameter);
+	const int iterations = job.param(outer_iterations);
+	const int smooth_iterations = job.param(inner_smooth_iterations);
 
 	auto in = job.in(depth_input);
 	auto in_mask = job.in(depth_mask_input);
 	auto out = job.out(depth_output);
 	auto out_mask = job.out(depth_mask_output);
-
+	
 	masked_image_view<real_depth_type, mask_type> in_img(in, in_mask);
 	masked_image_view<real_depth_type, mask_type> out_img(out, out_mask);
 	
@@ -57,20 +65,20 @@ void depth_post_process_filter::process(job_type& job) {
 	depth.setTo(0.0, holes);
 			
 	for(int i = 0; i < iterations; ++i) {
-		cv::Mat_<uchar> added_holes[smooth_iterations];
+		std::vector<cv::Mat_<uchar>> added_holes(smooth_iterations);
 		cv::Mat_<float> smoothed_depth;
 
 		for(int j = 0; j < smooth_iterations; ++j) {
 			cv::Mat_<uchar> non_holes, smoothed_holes;
 			cv::bitwise_not(holes, non_holes);
-			cv::medianBlur(holes, smoothed_holes, kernel_size);
+			cv::medianBlur(holes, smoothed_holes, kernel_sz);
 			cv::bitwise_and(non_holes, smoothed_holes, added_holes[j]);
 			smoothed_holes.setTo(0, added_holes[j]);
 			smoothed_holes.copyTo(holes);
 		}
 		
 		for(int j = 0; j < smooth_iterations; ++j) {
-			cv::medianBlur(depth, smoothed_depth, kernel_size);
+			cv::medianBlur(depth, smoothed_depth, kernel_sz);
 
 			depth.copyTo(smoothed_depth, added_holes[j]);
 			smoothed_depth.copyTo(depth);

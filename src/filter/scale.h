@@ -18,56 +18,54 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef VW_FILTER_IMAGE_POST_PROCESS_H_
-#define VW_FILTER_IMAGE_POST_PROCESS_H_
+#ifndef VW_FILTER_SCALE_H_
+#define VW_FILTER_SCALE_H_
 
 #include <mf/filter/filter.h>
+#include <mf/filter/filter_job.h>
 #include <mf/filter/filter_parameter.h>
+#include <mf/image/image_view.h>
 #include <mf/opencv.h>
+#include <mf/nd/ndcoord.h>
 #include "../common.h"
 
 namespace vs {
 
-class image_post_process_filter : public mf::flow::filter {
-private:
-	void erode_left_bounds_(cv::Mat_<uchar>&);
-	void erode_right_bounds_(cv::Mat_<uchar>&);
-
-	bool should_erode_right_(job_type& job) const;
-
+template<typename Elem>
+class scale_filter : public mf::flow::filter {
 public:
-	input_type<2, color_type> image_input;
-	input_type<2, mask_type> image_mask_input;
+	input_type<2, Elem> input;
+	output_type<2, Elem> output;
 	
-	output_type<2, color_type> image_output;
-	output_type<2, tri_mask_type> image_mask_output;
-
-	parameter_type<int> kernel_diameter;
-	parameter_type<camera_type> source_camera;
-	parameter_type<camera_type> virtual_camera;
+	mf::ndsize<2> output_size;
+	int interpolation = cv::INTER_AREA;
 	
-	image_post_process_filter() :
-		image_input(*this),
-		image_mask_input(*this),
-		image_output(*this),
-		image_mask_output(*this),
-		source_camera(*this),
-		virtual_camera(*this),
-		kernel_diameter(*this)
+	scale_filter() :
+		input(*this, 0, 0),
+		output(*this)
 	{
-		image_input.set_name("in");
-		image_mask_input.set_name("in mask");
-		image_output.set_name("out");
-		image_mask_output.set_name("out mask");
-		source_camera.set_name("source cam");
-		virtual_camera.set_name("virtual cam");
-		kernel_diameter.set_name("kernel diameter");
+		input.set_name("in");
+		output.set_name("out");
 	}
-
-	void configure(const json&);
-
-	void setup() override;
-	void process(job_type& job) override;	
+	
+	void setup() override {
+		output.define_frame_shape(output_size);
+	}
+	
+	void process(job_type& job) override {					
+		mf::image_view<Elem> in_img(job.in(input));
+		
+		cv::Mat_<Elem> scaled_img;
+		cv::resize(
+			in_img.cv_mat(),
+			scaled_img,
+			cv::Size(output_size[1], output_size[0]),
+			0, 0,
+			interpolation
+		);
+		
+		job.out(output).assign( mf::to_ndarray_view(scaled_img) );
+	}
 };
 	
 }

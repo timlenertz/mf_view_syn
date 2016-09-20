@@ -33,6 +33,20 @@ namespace vs {
 
 using namespace mf;
 
+void result_post_process_filter::configure(const json& j) {
+	inpaint_radius.set_constant_value(j.value("inpaint_radius", 3.0));
+	
+	rgb_color bg(0, 128, 128);
+	if(j.count("inpaint_background") != 0) {
+		auto j_bg = j["inpaint_background"];
+		bg.r = j_bg[0];
+		bg.g = j_bg[1];
+		bg.b = j_bg[2];
+	}
+	inpaint_background.set_constant_value(bg);
+}
+
+
 void result_post_process_filter::setup() {
 	image_output.define_frame_shape(image_input.frame_shape());
 }
@@ -42,9 +56,13 @@ void result_post_process_filter::process(job_type& job) {
 	auto in = job.in(image_input);
 	auto in_mask = job.in(image_mask_input);
 	auto out = job.out(image_output);	
+	
 
-	double inpaint_radius = 3.0;
-	cv::Vec<uchar, 3> inpaint_background(0, 128, 128);
+	double radius = job.param(inpaint_radius);
+	cv::Vec<uchar, 3> background;
+	background[0] = job.param(inpaint_background).r;
+	background[1] = job.param(inpaint_background).g;
+	background[2] = job.param(inpaint_background).b;
 
 	masked_image_view<color_type, mask_type> in_img(in, in_mask);
 	image_view<color_type> out_img(out);
@@ -56,10 +74,9 @@ void result_post_process_filter::process(job_type& job) {
 	cv::Mat_<uchar> holes;
 	cv::bitwise_not(in_mask_mat, holes);
 	
-	in_img_mat.setTo(inpaint_background, holes);
-	cv::inpaint(in_img_mat, holes, out_img_mat, inpaint_radius, cv::INPAINT_NS);
-	
-	//std::this_thread::sleep_for(std::chrono::seconds(2));
+	in_img_mat.setTo(background, holes);
+	out = in;
+	//cv::inpaint(in_img_mat, holes, out_img_mat, radius, cv::INPAINT_NS);
 }
 
 }

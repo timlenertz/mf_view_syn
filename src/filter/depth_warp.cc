@@ -25,7 +25,6 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/image/masked_image_view.h>
 #include <mf/io/image_export.h>
 
-
 namespace vs {
 
 using namespace mf;
@@ -60,6 +59,8 @@ void depth_warp_filter::process(job_type& job) {
 		real dest_depth = dest_3coord[2];
 
 		auto dest_pix_coord = dest_cam.to_pixel(dest_3coord.head(2));
+	
+	//	std::cout << dest_cam.image_span() << std::endl;
 
 		if(dest_cam.image_span().includes(dest_pix_coord)) {
 			real_depth_type& output_dest_depth = dest_depth_out.at(dest_pix_coord);

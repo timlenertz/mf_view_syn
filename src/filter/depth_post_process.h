@@ -22,6 +22,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #define VW_FILTER_DEPTH_POST_PROCESS_H_
 
 #include <mf/filter/filter.h>
+#include <mf/filter/filter_parameter.h>
 #include "../common.h"
 
 namespace vs {
@@ -33,20 +34,32 @@ public:
 	output_type<2, real_depth_type> depth_output;
 	output_type<2, mask_type> depth_mask_output;
 	
+	parameter_type<int> kernel_diameter;
+	parameter_type<int> outer_iterations;
+	parameter_type<int> inner_smooth_iterations;
+	
 	depth_post_process_filter() :
 		depth_input(*this),
 		depth_mask_input(*this),
 		depth_output(*this),
-		depth_mask_output(*this)
+		depth_mask_output(*this),
+		kernel_diameter(*this),
+		outer_iterations(*this),
+		inner_smooth_iterations(*this)
 	{
 		depth_input.set_name("di");
 		depth_mask_input.set_name("di mask");
 		depth_output.set_name("di");
 		depth_mask_output.set_name("di mask");
+		kernel_diameter.set_name("kernel diameter");
+		outer_iterations.set_name("outer iterations");
+		inner_smooth_iterations.set_name("inner smooth iterations");
 	}
+	
+	void configure(const json&);
 
 	void setup() override;
-	void process(job_type& job) override;	
+	void process(job_type& job) override;
 };
 	
 }

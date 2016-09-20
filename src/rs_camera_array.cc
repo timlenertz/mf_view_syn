@@ -31,13 +31,18 @@ namespace vs {
 using namespace mf;
 
 projection_camera rs_camera_array::read_camera_
-(std::istream& str, const depth_projection_parameters& dparam, const ndsize<2>& img_sz) {
+(std::istream& str, const depth_projection_parameters& dparam, const ndsize<2>& img_sz, double scale) {
 	str.exceptions(std::ios_base::badbit | std::ios_base::failbit | std::ios_base::eofbit);
 	
 	Eigen_mat3 intrinsic = Eigen_mat3::Zero();
 	str >> intrinsic(0, 0) >> intrinsic(0, 1) >> intrinsic(0, 2);
 	str >> intrinsic(1, 0) >> intrinsic(1, 1) >> intrinsic(1, 2);
 	str >> intrinsic(2, 0) >> intrinsic(2, 1) >> intrinsic(2, 2);
+	
+	intrinsic(0, 0) *= scale;
+	intrinsic(1, 1) *= scale;
+	intrinsic(0, 2) *= scale;
+	intrinsic(1, 2) *= scale;
 	
 	Eigen_scalar gomi[2]; // ?
 	str >> gomi[0] >> gomi[1];
@@ -56,7 +61,7 @@ projection_camera rs_camera_array::read_camera_
 
 
 rs_camera_array::rs_camera_array
-(const std::string& filename, const depth_projection_parameters& dparam, const ndsize<2>& img_sz) {
+(const std::string& filename, const depth_projection_parameters& dparam, const ndsize<2>& img_sz, double scale) {
 	std::ifstream file(filename);
 	
 	for(;;) {
@@ -74,7 +79,7 @@ rs_camera_array::rs_camera_array
 
 		cameras_.insert(std::make_pair(
 			name,
-			read_camera_(file, dparam, img_sz)
+			read_camera_(file, dparam, img_sz, scale)
 		));
 	}
 }

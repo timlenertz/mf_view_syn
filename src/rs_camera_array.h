@@ -39,10 +39,10 @@ class rs_camera_array {
 private:
 	std::map<std::string, mf::projection_camera> cameras_;
 	
-	mf::projection_camera read_camera_(std::istream& str, const mf::depth_projection_parameters&, const mf::ndsize<2>&);
+	mf::projection_camera read_camera_(std::istream& str, const mf::depth_projection_parameters&, const mf::ndsize<2>&, double scale);
 
 public:
-	rs_camera_array(const std::string& filename, const mf::depth_projection_parameters&, const mf::ndsize<2>&);
+	rs_camera_array(const std::string& filename, const mf::depth_projection_parameters&, const mf::ndsize<2>&, double scale);
 		
 	bool has(const std::string&) const;
 	const mf::projection_camera& operator[](const std::string&) const;

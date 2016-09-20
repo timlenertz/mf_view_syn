@@ -37,34 +37,31 @@ public:
 		input_type<2, real_depth_type> depth_input;
 		input_type<2, tri_mask_type> mask_input;
 		parameter_type<camera_type> source_camera;
-		parameter_type<bool> right_side_sent;
-		
 		
 		input_branch(result_blend_filter& filt, const std::string& name) :
 			image_input(filt),
 			depth_input(filt),
 			mask_input(filt),
-			source_camera(filt),
-			right_side_sent(filt)
+			source_camera(filt)
 		{
 			image_input.set_name(name + " im");
 			depth_input.set_name(name + " di");
 			mask_input.set_name(name + " mask");
 			source_camera.set_name(name + " cam");
-			right_side_sent.set_name(name + " rightside");
 		}
 	};
 	
 private:
 	struct input_branch_selection {
-		input_branch& left;
-		mf::real left_weight;
-		input_branch& right;
-		mf::real right_weight;
+		struct entry {
+			input_branch& branch;
+			mf::real distance;
+		};
 		
-		bool selected(const input_branch& br) const {
-			return (&br == &left) || (&br == &right);
-		}
+		std::vector<entry> entries;
+		
+		bool selected(const input_branch&) const;
+		void add(input_branch&, mf::real distance);
 	};
 	
 	std::vector<std::unique_ptr<input_branch>> input_branches_;
@@ -72,9 +69,16 @@ private:
 	input_branch_selection select_branches_(job_type& job) const;
 
 public:
+	enum class blend_mode_type { color, max_weight, min_depth };
+
 	output_type<2, color_type> virtual_image_output;
 	output_type<2, mask_type> virtual_mask_output;
 	parameter_type<camera_type> virtual_camera;
+	
+	parameter_type<bool> color_blending;
+	parameter_type<real_depth_type> color_blending_maximal_depth_difference;
+	
+	parameter_type<int> selected_inputs_count;
 	
 	mf::ndsize<2> shape_;
 	bool depth_blending = true;
@@ -83,13 +87,20 @@ public:
 	result_blend_filter() :
 		virtual_image_output(*this),
 		virtual_mask_output(*this),
-		virtual_camera(*this)
+		virtual_camera(*this),
+		color_blending(*this),
+		color_blending_maximal_depth_difference(*this),
+		selected_inputs_count(*this)
 	{
 		virtual_image_output.set_name("im");
 		virtual_mask_output.set_name("im mask");
 		virtual_camera.set_name("virtual cam");
+		color_blending.set_name("color blending");
+		color_blending_maximal_depth_difference.set_name("color blend max d diff");
+		selected_inputs_count.set_name("selected inputs count");
 	}
 	
+	void configure(const json&);
 	input_branch& add_input_branch(const std::string& name);
 
 	void setup() override;
