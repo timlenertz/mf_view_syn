@@ -150,8 +150,8 @@ void view_synthesis::setup() {
 	
 	blend.configure(configuration_["synthesis"]["blend"]);
 		
-//	blend.set_asynchonous(true);
-//	blend.set_prefetch_duration(5);
+	blend.set_asynchonous(true);
+	blend.set_prefetch_duration(2);
 	
 	// result refinement
 	auto& result_post = graph_.add_filter<result_post_process_filter>();

@@ -110,7 +110,7 @@ void result_blend_filter::pre_process(job_type& job) {
 }
 
 
-void result_blend_filter::process(job_type& job) {	
+void result_blend_filter::process(job_type& job) {		
 	real threshold_depth_difference = job.param(color_blending_maximal_depth_difference);
 	bool do_color_blending = job.param(color_blending);
 
@@ -142,7 +142,7 @@ void result_blend_filter::process(job_type& job) {
 
 	// arrays will hold branch indices (`ent`) of selected entries where pixel is stable/unstable
 	std::vector<std::ptrdiff_t> stables, unstables;
-	stables.reserve(n); stables.reserve(n);
+	stables.reserve(n); unstables.reserve(n);
 	
 	// for each pixel in the image...
 	for(auto coord : make_ndspan(shape_)) {
@@ -172,6 +172,7 @@ void result_blend_filter::process(job_type& job) {
 		acceptables.reserve(n);
 		if(stables.size() > 0) acceptables = stables;
 		else acceptables = unstables;
+		acceptables = stables;
 		
 		// get acceptable with maximal depth (largest value = closest to camera)
 		// _depth_ = disparity, measures proximity to virtual camera
@@ -203,16 +204,19 @@ void result_blend_filter::process(job_type& job) {
 			
 			// get maximal distance of remaining acceptables
 			// _distance_ = euclidian distance of branch's source camera to virtual camera
-			real max_distance = 0;
-			for(std::ptrdiff_t ent : acceptables)
-				if(sel.entries[ent].distance > max_distance) max_distance = sel.entries[ent].distance;
+			real max_distance = 0, distance_sum = 0;
+			for(std::ptrdiff_t ent : acceptables) {
+				real distance = sel.entries[ent].distance;
+				if(distance > max_distance) max_distance = distance;
+				distance_sum += distance;
+			}
 			
 			// compute normalized weight for each acceptable
 			// calculate from max_distance/distance[ent]
 			std::vector<real> acceptable_weights; // uses indices as acceptables vector
 			real acceptable_weights_sum = 0.0;
 			for(std::ptrdiff_t ent : acceptables) {
-				real weight = 2*max_distance - sel.entries[ent].distance; // TODO revise formula
+				real weight = distance_sum - sel.entries[ent].distance; // TODO revise formula
 				acceptable_weights.push_back(weight);
 				acceptable_weights_sum += weight;
 			}
@@ -220,10 +224,13 @@ void result_blend_filter::process(job_type& job) {
 			// now compute RGB color
 			real r = 0, g = 0, b = 0;
 			for(std::ptrdiff_t ent : acceptables) {
-				r += in_color[ent].r * acceptable_weights[ent];
-				g += in_color[ent].g * acceptable_weights[ent];
-				b += in_color[ent].b * acceptable_weights[ent];
+				real w = acceptable_weights[ent];
+				w = 1.0;
+				r += w * in_color[ent].r;
+				g += w * in_color[ent].g;
+				b += w * in_color[ent].b;
 			}
+			acceptable_weights_sum = acceptable_weights.size();
 			r = clamp(r / acceptable_weights_sum, 0.0, 255.0);
 			g = clamp(g / acceptable_weights_sum, 0.0, 255.0);
 			b = clamp(b / acceptable_weights_sum, 0.0, 255.0);
@@ -235,7 +242,7 @@ void result_blend_filter::process(job_type& job) {
 		} else {
 			// no color blending to be used
 			// select acceptable with maximal weight
-			// weight = max_distance-its_distance --> select the one with minimal distance
+			// weight = distance_sum/its_distance --> select the one with minimal distance
 			real min_distance = 0;
 			std::ptrdiff_t min_distance_ent = 0;
 			for(std::ptrdiff_t ent : acceptables) {

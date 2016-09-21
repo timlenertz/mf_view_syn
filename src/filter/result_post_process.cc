@@ -57,7 +57,6 @@ void result_post_process_filter::process(job_type& job) {
 	auto in_mask = job.in(image_mask_input);
 	auto out = job.out(image_output);	
 	
-
 	double radius = job.param(inpaint_radius);
 	cv::Vec<uchar, 3> background;
 	background[0] = job.param(inpaint_background).r;
@@ -76,7 +75,7 @@ void result_post_process_filter::process(job_type& job) {
 	
 	in_img_mat.setTo(background, holes);
 	out = in;
-	//cv::inpaint(in_img_mat, holes, out_img_mat, radius, cv::INPAINT_NS);
+	cv::inpaint(in_img_mat, holes, out_img_mat, radius, cv::INPAINT_NS);	
 }
 
 }

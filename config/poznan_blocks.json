@@ -29,11 +29,11 @@
 			"inner_smooth_iterations" : 2
 		},
 		"image_refine" : {
-			"kernel_diameter" : 2
+			"kernel_diameter" : 5
 		},
 		"blend" : {
-			"color_blending" : false,
-			"color_blending_maximal_depth_difference" : 0.001,
+			"color_blending" : true,
+			"color_blending_maximal_depth_difference" : 0.002,
 			"selected_inputs_count" : 3
 		},
 		"result_refine" : {

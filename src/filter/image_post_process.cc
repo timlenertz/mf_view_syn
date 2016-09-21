@@ -22,9 +22,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/opencv.h>
 #include <mf/filter/filter_job.h>
 #include <mf/image/masked_image_view.h>
+#include <mf/image/image.h>
 #include <mf/image/kernel.h>
 
 #include <mf/io/image_export.h>
+
+#include <mutex>
 
 namespace vs {
 
@@ -63,7 +66,7 @@ bool image_post_process_filter::should_erode_right_(job_type& job) const {
 	camera_type source_cam = job.param(source_camera);
 	camera_type virtual_cam = job.param(virtual_camera);
 
-	return (source_cam.absolute_pose().position[0] > virtual_cam.absolute_pose().position[0]);
+	return (source_cam.absolute_pose().position[0] < virtual_cam.absolute_pose().position[0]);
 }
 
 
@@ -77,7 +80,6 @@ void image_post_process_filter::setup() {
 	image_mask_output.define_frame_shape(image_input.frame_shape());
 }
 
-
 void image_post_process_filter::process(job_type& job) {
 	int kernel_sz = job.param(kernel_diameter);
 
@@ -85,7 +87,7 @@ void image_post_process_filter::process(job_type& job) {
 	auto in_mask = job.in(image_mask_input);
 	auto out = job.out(image_output);
 	auto out_mask = job.out(image_mask_output);
-	
+		
 	masked_image_view<color_type, mask_type> in_img(in, in_mask);
 	masked_image_view<color_type, tri_mask_type> out_img(out, out_mask);
 
@@ -98,16 +100,24 @@ void image_post_process_filter::process(job_type& job) {
 	if(should_erode_right_(job)) erode_right_bounds_(bound);
 	else erode_left_bounds_(bound);
 
-	auto kernel = to_opencv( disk_image_kernel(kernel_sz).view() );
-	cv::dilate(bound, bound, kernel);
+	image<bool> kernel(disk_image_kernel(kernel_sz));
+
+		cv::Mat_<rgb_color> img_ex;
+		in_img.cv_mat().copyTo(img_ex);
+		img_ex.setTo(cv::Vec<uchar, 3>(255,255,255), in_img.cv_mask_mat()==0);
+		
+
+		image_export(image_view<rgb_color>(img_ex), "img/" + name() + " im.png");
+		img_ex.setTo(cv::Vec<uchar, 3>(255,0,0), bound);
+		image_export(image_view<rgb_color>(img_ex), "img/" + name() + " im_.png");
+
+		
+	cv::dilate(bound, bound, kernel.cv_mat());
 	cv::bitwise_and(in_img.cv_mask_mat(), bound, bound);
 
 	out = in;
 	out_mask = in_mask;
-	out_img.cv_mask_mat().setTo(tri_mask_unstable, bound);
-
-	image_export(out_img, "img/" + name() + " im.png");
-
+	out_img.cv_mask_mat().setTo(tri_mask_clear, bound);
 }
 
 

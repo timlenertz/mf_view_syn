@@ -14,7 +14,7 @@
 		"views" : {
 			"from" : 5,
 			"to" : 84,
-			"step" : 10,
+			"step" : 1,
 			"placeholder" : "#",
 			"placeholder_length" : 2,
 			"camera_name" : "param_ptm#",
@@ -35,7 +35,7 @@
 		"blend" : {
 			"color_blending" : true,
 			"color_blending_maximal_depth_difference" : 0.0,
-			"selected_inputs_count" : 2
+			"selected_inputs_count" : 1
 		},
 		"result_refine" : {
 			"inpaint_background_color" : [0, 128, 128],
