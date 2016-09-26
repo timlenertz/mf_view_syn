@@ -119,7 +119,7 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 	image_post.configure(configuration_["synthesis"]["image_refine"]);
 	
 	image_post.set_asynchonous(true);
-	image_post.set_prefetch_duration(5);
+	image_post.set_prefetch_duration(1);
 	
 	// brand end that connected to blender
 	return branch_end {
@@ -150,8 +150,7 @@ void view_synthesis::setup() {
 	
 	blend.configure(configuration_["synthesis"]["blend"]);
 		
-	blend.set_asynchonous(true);
-	blend.set_prefetch_duration(2);
+	blend.set_asynchonous(false);
 	
 	// result refinement
 	auto& result_post = graph_.add_filter<result_post_process_filter>();

@@ -72,6 +72,8 @@ void image_reverse_warp_filter::process(job_type& job) {
 			dest_image_mask_out.at(dest_pix_coord) = mask_clear;
 		}
 	}
+	
+	//image_export(make_masked_image_view<rgb_color, mask_type>(dest_image_out, dest_image_mask_out), "img/" + name()+".png");
 }
 
 

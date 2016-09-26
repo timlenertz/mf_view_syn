@@ -67,6 +67,8 @@ private:
 	std::vector<std::unique_ptr<input_branch>> input_branches_;
 	
 	input_branch_selection select_branches_(job_type& job) const;
+	
+	template<std::size_t Selected_inputs_count> void process_(job_type&);
 
 public:
 	enum class blend_mode_type { color, max_weight, min_depth };

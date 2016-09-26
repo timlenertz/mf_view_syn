@@ -2,7 +2,7 @@
 	"input" : {
 		"width" : 1920,
 		"height" : 1080,
-		"scale" : 0.5,
+		"scale" : 1.0,
 		"number_of_frames" : 200,
 		"depth" : {
 			"z_near" : 15.0,
@@ -17,8 +17,8 @@
 			"step" : 1,
 			"placeholder" : "#",
 			"camera_name" : "param_cam#",
-			"image_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_texture_cam#.yuv",
-			"depth_sequence_file" : "/data/test_sequences/poznan_blocks/Poznan_Blocks_1920x1080_depth_cf420_8bps_cam#.yuv"
+			"image_sequence_file" : "/data/test_sequences/poznan_blocks_/Poznan_Blocks_1920x1080_texture_cam#.yuv",
+			"depth_sequence_file" : "/data/test_sequences/poznan_blocks_/Poznan_Blocks_1920x1080_depth_cf420_8bps_cam#.yuv"
 		}
 	},
 	
@@ -29,7 +29,7 @@
 			"inner_smooth_iterations" : 2
 		},
 		"image_refine" : {
-			"kernel_diameter" : 5
+			"kernel_diameter" : 0
 		},
 		"blend" : {
 			"color_blending" : true,

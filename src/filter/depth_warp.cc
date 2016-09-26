@@ -36,6 +36,8 @@ void depth_warp_filter::setup() {
 
 
 void depth_warp_filter::process(job_type& job) {
+//	sleep(1);
+	
 	auto source_cam = job.param(source_camera);
 	auto dest_cam = job.param(destination_camera);
 
@@ -71,6 +73,8 @@ void depth_warp_filter::process(job_type& job) {
 			}
 		}
 	}
+	
+	//image_export(make_masked_image_view<real_depth_type, mask_type>(dest_depth_out, dest_depth_mask_out), "img/" + name()+".png");
 }
 
 

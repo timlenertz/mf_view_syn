@@ -110,7 +110,8 @@ void result_blend_filter::pre_process(job_type& job) {
 }
 
 
-void result_blend_filter::process(job_type& job) {		
+template<std::size_t N>
+void result_blend_filter::process_(job_type& job) {
 	real threshold_depth_difference = job.param(color_blending_maximal_depth_difference);
 	bool do_color_blending = job.param(color_blending);
 
@@ -119,7 +120,8 @@ void result_blend_filter::process(job_type& job) {
 	// - image, depth, mask input warped from one source camera to virtual camera
 	// - distance of that source camera to virtual camera
 	input_branch_selection sel = select_branches_(job);
-	std::size_t n = sel.entries.size();
+	Assert(sel.entries.size() == N);
+	constexpr std::size_t n = N;
 
 	// get input view (for each selected branch) and output view
 	std::vector<ndarray_view<2, rgb_color>> image_in;
@@ -254,6 +256,21 @@ void result_blend_filter::process(job_type& job) {
 			virtual_out.at(coord) = in_color[min_distance_ent];
 			virtual_out_mask.at(coord) = mask_set;
 		}
+	}
+	
+	//image_export(make_masked_image_view<rgb_color, mask_type>(virtual_out, virtual_out_mask), "img/" + name()+".png");
+
+}
+
+
+void result_blend_filter::process(job_type& job) {
+	std::ptrdiff_t n = job.param(selected_inputs_count);
+	switch(n) {
+		case 1: process_<1>(job); break;
+		case 2: process_<2>(job); break;
+		case 3: process_<3>(job); break;
+		case 4: process_<4>(job); break;
+		default: throw std::runtime_error("unsupported selected view count");
 	}
 }
 

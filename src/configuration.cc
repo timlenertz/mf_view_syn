@@ -71,7 +71,7 @@ std::size_t configuration::input_views_count() const {
 	if(views.is_array()) {
 		return views.size();
 	} else if(views.is_object()) {
-		int count = views["to"].get<int>() - views["from"].get<int>();
+		int count = views["to"].get<int>() - views["from"].get<int>() + 1;
 		if(views.count("step") != 0) count /= views["step"].get<int>();
 		return count;
 	} else {
@@ -170,7 +170,7 @@ raw_video_frame_format<ycbcr_color> configuration::output_ycbcr_raw_format() con
 
 camera_type configuration::virtual_camera_functor::operator()(time_unit frame_index) const {
 	std::ptrdiff_t first = 0;
-	std::ptrdiff_t last = configuration_.input_views_count() - 1 - first;
+	std::ptrdiff_t last = configuration_.input_views_count() - 1;
 	
 	camera_type left_cam = configuration_.input_view_at(first).camera;
 	
@@ -179,9 +179,8 @@ camera_type configuration::virtual_camera_functor::operator()(time_unit frame_in
 	
 	real n = 100;
 	real t = -std::cos(frame_index * pi / n) / 2.0 + 0.5;
-	real lin_t = (frame_index / n);
+	//real t = frame_index / n;
 	pose virtual_pose = interpolate(left, right, t);
-	virtual_pose.orientation = left.orientation.slerp(lin_t, right.orientation);
 
 	camera_type virtual_cam = left_cam;
 	virtual_cam.set_relative_pose(virtual_pose);
