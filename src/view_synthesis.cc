@@ -118,8 +118,8 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 	image_post.virtual_camera.set_reference(depth_warp.destination_camera);
 	image_post.configure(configuration_["synthesis"]["image_refine"]);
 	
-	image_post.set_asynchonous(true);
-	image_post.set_prefetch_duration(1);
+	//image_post.set_asynchonous(true);
+//	image_post.set_prefetch_duration(0);
 	
 	// brand end that connected to blender
 	return branch_end {
@@ -190,7 +190,7 @@ void view_synthesis::run() {
 	
 	graph_.node_graph_->set_diagnostic(timeline);
 	
-	graph_.run_for(100);
+	graph_.run_for(15);
 	graph_.node_graph_->stop();
 	
 	std::cerr << "stopped" << std::endl;
