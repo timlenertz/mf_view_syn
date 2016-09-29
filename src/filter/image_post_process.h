@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_IMAGE_POST_PROCESS_H_
 #define VW_FILTER_IMAGE_POST_PROCESS_H_
 
+#include <mf/filter/filter_handler.h>
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_parameter.h>
 #include <mf/opencv.h>
@@ -28,7 +29,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 namespace vs {
 
-class image_post_process_filter : public mf::flow::filter {
+class image_post_process_filter : public mf::flow::filter_handler {
 private:
 	void erode_left_bounds_(cv::Mat_<uchar>&);
 	void erode_right_bounds_(cv::Mat_<uchar>&);
@@ -46,23 +47,15 @@ public:
 	parameter_type<camera_type> source_camera;
 	parameter_type<camera_type> virtual_camera;
 	
-	image_post_process_filter() :
-		image_input(*this),
-		image_mask_input(*this),
-		image_output(*this),
-		image_mask_output(*this),
-		source_camera(*this),
-		virtual_camera(*this),
-		kernel_diameter(*this)
-	{
-		image_input.set_name("in");
-		image_mask_input.set_name("in mask");
-		image_output.set_name("out");
-		image_mask_output.set_name("out mask");
-		source_camera.set_name("source cam");
-		virtual_camera.set_name("virtual cam");
-		kernel_diameter.set_name("kernel diameter");
-	}
+	explicit image_post_process_filter(mf::flow::filter& filt) :
+		mf::flow::filter_handler(filt),
+		image_input(filt, "in"),
+		image_mask_input(filt, "in mask"),
+		image_output(filt, "out"),
+		image_mask_output(filt, "out mask"),
+		source_camera(filt, "source cam"),
+		virtual_camera(filt, "virtual cam"),
+		kernel_diameter(filt, "kernel diameter") { }
 
 	void configure(const json&);
 

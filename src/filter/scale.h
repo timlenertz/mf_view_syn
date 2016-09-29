@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_SCALE_H_
 #define VW_FILTER_SCALE_H_
 
+#include <mf/filter/filter_handler.h>
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_job.h>
 #include <mf/filter/filter_parameter.h>
@@ -32,7 +33,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 namespace vs {
 
 template<typename Elem>
-class scale_filter : public mf::flow::filter {
+class scale_filter : public mf::flow::filter_handler {
 public:
 	input_type<2, Elem> input;
 	output_type<2, Elem> output;
@@ -40,13 +41,10 @@ public:
 	mf::ndsize<2> output_size;
 	int interpolation = cv::INTER_AREA;
 	
-	scale_filter() :
-		input(*this, 0, 0),
-		output(*this)
-	{
-		input.set_name("in");
-		output.set_name("out");
-	}
+	explicit scale_filter(mf::flow::filter& filt) :
+		mf::flow::filter_handler(filt),
+		input(filt, "in"),
+		output(filt, "out") { }
 	
 	void setup() override {
 		output.define_frame_shape(output_size);

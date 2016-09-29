@@ -21,13 +21,14 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_RESULT_POST_PROCESS_H_
 #define VW_FILTER_RESULT_POST_PROCESS_H_
 
+#include <mf/filter/filter_handler.h>
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_parameter.h>
 #include "../common.h"
 
 namespace vs {
 	
-class result_post_process_filter : public mf::flow::filter {
+class result_post_process_filter : public mf::flow::filter_handler {
 public:
 	input_type<2, color_type> image_input;
 	input_type<2, mask_type> image_mask_input;
@@ -36,19 +37,13 @@ public:
 	parameter_type<double> inpaint_radius;
 	parameter_type<color_type> inpaint_background;
 	
-	result_post_process_filter() :
-		image_input(*this),
-		image_mask_input(*this),
-		image_output(*this),
-		inpaint_radius(*this),
-		inpaint_background(*this)
-	{
-		image_input.set_name("im");
-		image_mask_input.set_name("im mask");
-		image_output.set_name("im");
-		inpaint_radius.set_name("inpaint radius");
-		inpaint_background.set_name("inpaint background");
-	}
+	explicit result_post_process_filter(mf::flow::filter& filt) :
+		mf::flow::filter_handler(filt),
+		image_input(filt, "im"),
+		image_mask_input(filt, "im mask"),
+		image_output(filt, "im"),
+		inpaint_radius(filt, "inpaint radius"),
+		inpaint_background(filt, "inpaint background") { }
 	
 	void configure(const json&);
 	

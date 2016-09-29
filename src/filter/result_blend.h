@@ -21,6 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_RESULT_BLEND_H_
 #define VW_FILTER_RESULT_BLEND_H_
 
+#include <mf/filter/filter_handler.h>
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_parameter.h>
 #include <utility>
@@ -30,7 +31,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 namespace vs {
 
-class result_blend_filter : public mf::flow::filter {
+class result_blend_filter : public mf::flow::filter_handler {
 public:
 	struct input_branch {
 		input_type<2, color_type> image_input;
@@ -38,17 +39,11 @@ public:
 		input_type<2, tri_mask_type> mask_input;
 		parameter_type<camera_type> source_camera;
 		
-		input_branch(result_blend_filter& filt, const std::string& name) :
-			image_input(filt),
-			depth_input(filt),
-			mask_input(filt),
-			source_camera(filt)
-		{
-			image_input.set_name(name + " im");
-			depth_input.set_name(name + " di");
-			mask_input.set_name(name + " mask");
-			source_camera.set_name(name + " cam");
-		}
+		input_branch(result_blend_filter& hnd, const std::string& name) :
+			image_input(hnd.this_filter(), name + " im"),
+			depth_input(hnd.this_filter(), name + " di"),
+			mask_input(hnd.this_filter(), name + " mask"),
+			source_camera(hnd.this_filter(), name + " cam") { }
 	};
 	
 private:
@@ -86,21 +81,14 @@ public:
 	bool depth_blending = true;
 	mf::real depth_blending_minimal_difference = 5.0;
 
-	result_blend_filter() :
-		virtual_image_output(*this),
-		virtual_mask_output(*this),
-		virtual_camera(*this),
-		color_blending(*this),
-		color_blending_maximal_depth_difference(*this),
-		selected_inputs_count(*this)
-	{
-		virtual_image_output.set_name("im");
-		virtual_mask_output.set_name("im mask");
-		virtual_camera.set_name("virtual cam");
-		color_blending.set_name("color blending");
-		color_blending_maximal_depth_difference.set_name("color blend max d diff");
-		selected_inputs_count.set_name("selected inputs count");
-	}
+	explicit result_blend_filter(mf::flow::filter& filt) :
+		mf::flow::filter_handler(filt),
+		virtual_image_output(filt, "im"),
+		virtual_mask_output(filt, "im mask"),
+		virtual_camera(filt, "virtual cam"),
+		color_blending(filt, "color blending"),
+		color_blending_maximal_depth_difference(filt, "color blend max d diff"),
+		selected_inputs_count(filt, "selected inputs count") { }
 	
 	void configure(const json&);
 	input_branch& add_input_branch(const std::string& name);

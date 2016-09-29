@@ -90,12 +90,13 @@ void result_blend_filter::setup() {
 	shape_ = input_branches_.front()->image_input.frame_shape();
 	virtual_image_output.define_frame_shape(shape_);
 	virtual_mask_output.define_frame_shape(shape_);
-	
+	/*
 	for(auto&& br : input_branches_) {
 		br->image_input.set_activated(false);
 		br->depth_input.set_activated(false);
 		br->mask_input.set_activated(false);
 	}
+	*/
 }
 
 
@@ -103,9 +104,9 @@ void result_blend_filter::pre_process(job_type& job) {
 	input_branch_selection sel = select_branches_(job);
 	for(auto&& br : input_branches_) {
 		bool act = sel.selected(*br);
-		br->image_input.set_activated(act);
-		br->depth_input.set_activated(act);
-		br->mask_input.set_activated(act);
+		job.set_activated(br->image_input, act);
+		if(input_branches_.front()->depth_input.is_connected()) job.set_activated(br->depth_input, act);
+		job.set_activated(br->mask_input, act);
 	}
 }
 
@@ -114,6 +115,7 @@ template<std::size_t N>
 void result_blend_filter::process_(job_type& job) {
 	real threshold_depth_difference = job.param(color_blending_maximal_depth_difference);
 	bool do_color_blending = job.param(color_blending);
+	bool do_depth_based_blending = input_branches_.front()->depth_input.is_connected() && (threshold_depth_difference > 0);
 
 	// select branches that are active
 	// selection = list of branches, with
@@ -125,22 +127,21 @@ void result_blend_filter::process_(job_type& job) {
 
 	// get input view (for each selected branch) and output view
 	std::vector<ndarray_view<2, rgb_color>> image_in;
-	std::vector<ndarray_view<2, real_depth_type>> depth_in;
 	std::vector<ndarray_view<2, tri_mask_type>> mask_in;
+	std::vector<ndarray_view<2, real_depth_type>> depth_in;
 	image_in.reserve(n); depth_in.reserve(n); mask_in.reserve(n);
 	for(const auto& selected_entry : sel.entries) {
 		image_in.push_back(job.in(selected_entry.branch.image_input));
-		depth_in.push_back(job.in(selected_entry.branch.depth_input));
 		mask_in.push_back(job.in(selected_entry.branch.mask_input));
+		if(do_depth_based_blending) depth_in.push_back(job.in(selected_entry.branch.depth_input));
 	}
 	auto virtual_out = job.out(virtual_image_output);
 	auto virtual_out_mask = job.out(virtual_mask_output);
 
 	// arrays will hold input color, depth and mask of current pixel, for each selected branch
 	std::vector<rgb_color> in_color;
-	std::vector<real_depth_type> in_depth; // "depth" = disparity (larger = closer to camera)
 	std::vector<tri_mask_type> in_mask;
-	in_color.reserve(n); in_depth.reserve(n); in_mask.reserve(n);
+	in_color.reserve(n); in_mask.reserve(n);
 
 	// arrays will hold branch indices (`ent`) of selected entries where pixel is stable/unstable
 	std::vector<std::ptrdiff_t> stables, unstables;
@@ -155,7 +156,6 @@ void result_blend_filter::process_(job_type& job) {
 		unstables.clear();
 		for(std::ptrdiff_t ent = 0; ent < n; ++ent) {			
 			in_color[ent] = image_in[ent].at(coord);
-			in_depth[ent] = depth_in[ent].at(coord);
 			
 			tri_mask_type msk = mask_in[ent].at(coord);
 			if(msk == tri_mask_unstable) unstables.push_back(ent);
@@ -167,6 +167,7 @@ void result_blend_filter::process_(job_type& job) {
 			virtual_out_mask.at(coord) = mask_clear;
 			continue;
 		}
+
 		
 		// acceptables = indices of selected entries that will be used to deduce virtual color
 		// normally only stables, except if there are only unstables
@@ -175,31 +176,36 @@ void result_blend_filter::process_(job_type& job) {
 		if(stables.size() > 0) acceptables = stables;
 		else acceptables = unstables;
 		acceptables = stables;
+	
+	
 		
-		// get acceptable with maximal depth (largest value = closest to camera)
-		// _depth_ = disparity, measures proximity to virtual camera
-		std::ptrdiff_t max_depth_ent = -1;
-		for(std::ptrdiff_t ent : acceptables)
-			if(max_depth_ent == -1 || in_depth[ent] > in_depth[max_depth_ent]) max_depth_ent = ent;
-		
-		// if `threshold_depth_difference` is set: filter out acceptables that are too far off
+		// if doing depth blending: filter out acceptables that are too far off
 		// (where difference with maximal depth > threshold)
-		if(threshold_depth_difference > 0.0) {
+		if(do_depth_based_blending) {
+			// get acceptable with maximal depth (largest value = closest to camera)
+			// _depth_ = disparity, measures proximity to virtual camera
+			std::ptrdiff_t max_d_ent = -1;
+			real max_d = 0;
+			for(std::ptrdiff_t ent : acceptables) {
+				real d = depth_in[ent].at(coord);
+				if(max_d_ent == -1 || d > max_d) {
+					max_d_ent = ent;
+					max_d = d;
+				}
+			}
+
+			// filter out acceptables
 			std::vector<ptrdiff_t> close_acceptables; close_acceptables.reserve(n);
 			for(std::ptrdiff_t ent : acceptables) {
-				//std::cout << in_depth[max_depth_ent] - in_depth[ent] << std::endl;
-				if(in_depth[max_depth_ent] - in_depth[ent] < threshold_depth_difference) close_acceptables.push_back(ent);
+				real d = depth_in[ent].at(coord);
+				if(max_d - d < threshold_depth_difference) close_acceptables.push_back(ent);
 			}
-			//if(close_acceptables.size() < acceptables.size()) std::cout << "acceptables " << acceptables.size() << "  close: " << close_acceptables.size() << std::endl;
 			acceptables = close_acceptables;
-			
 		}
-		
 		
 		if(acceptables.size() == 1) {
 			virtual_out.at(coord) = in_color[acceptables.front()];
 			virtual_out_mask.at(coord) = mask_set;
-
 		
 		} else if(do_color_blending) {
 			// color blending being used

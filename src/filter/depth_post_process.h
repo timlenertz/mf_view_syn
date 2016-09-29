@@ -21,13 +21,14 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_DEPTH_POST_PROCESS_H_
 #define VW_FILTER_DEPTH_POST_PROCESS_H_
 
+#include <mf/filter/filter_handler.h>
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_parameter.h>
 #include "../common.h"
 
 namespace vs {
 
-class depth_post_process_filter : public mf::flow::filter {
+class depth_post_process_filter : public mf::flow::filter_handler {
 public:
 	input_type<2, real_depth_type> depth_input;
 	input_type<2, mask_type> depth_mask_input;
@@ -38,23 +39,15 @@ public:
 	parameter_type<int> outer_iterations;
 	parameter_type<int> inner_smooth_iterations;
 	
-	depth_post_process_filter() :
-		depth_input(*this),
-		depth_mask_input(*this),
-		depth_output(*this),
-		depth_mask_output(*this),
-		kernel_diameter(*this),
-		outer_iterations(*this),
-		inner_smooth_iterations(*this)
-	{
-		depth_input.set_name("di");
-		depth_mask_input.set_name("di mask");
-		depth_output.set_name("di");
-		depth_mask_output.set_name("di mask");
-		kernel_diameter.set_name("kernel diameter");
-		outer_iterations.set_name("outer iterations");
-		inner_smooth_iterations.set_name("inner smooth iterations");
-	}
+	explicit depth_post_process_filter(mf::flow::filter& filt) :
+		mf::flow::filter_handler(filt),
+		depth_input(filt, "di"),
+		depth_mask_input(filt, "di mask"),
+		depth_output(filt, "di"),
+		depth_mask_output(filt, "di mask"),
+		kernel_diameter(filt, "kernel diameter"),
+		outer_iterations(filt, "outer iterations"),
+		inner_smooth_iterations(filt, "inner smooth iterations") { }
 	
 	void configure(const json&);
 

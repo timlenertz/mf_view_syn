@@ -13,7 +13,7 @@
 		"camera_description_file" : "config/poznan_blocks_cam.txt",
 		"views" : {
 			"from" : 2,
-			"to" : 3,
+			"to" : 8,
 			"step" : 1,
 			"placeholder" : "#",
 			"camera_name" : "param_cam#",
@@ -33,6 +33,7 @@
 		},
 		"blend" : {
 			"color_blending" : true,
+			"depth_based_blending" : false,
 			"color_blending_maximal_depth_difference" : 0.000,
 			"selected_inputs_count" : 2
 		},

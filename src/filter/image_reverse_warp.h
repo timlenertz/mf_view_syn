@@ -21,13 +21,14 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_IMAGE_REVERSE_WARP_H_
 #define VW_FILTER_IMAGE_REVERSE_WARP_H_
 
+#include <mf/filter/filter_handler.h>
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_parameter.h>
 #include "../common.h"
 
 namespace vs {
 
-class image_reverse_warp_filter : public mf::flow::filter {
+class image_reverse_warp_filter : public mf::flow::filter_handler {
 private:
 	mf::ndsize<2> shape_;
 
@@ -42,23 +43,15 @@ public:
 	parameter_type<camera_type> source_camera;
 	parameter_type<camera_type> destination_camera;
 
-	image_reverse_warp_filter() :
-		source_image_input(*this),
-		destination_depth_input(*this),
-		destination_depth_mask_input(*this),
-		destination_image_output(*this),
-		destination_image_mask_output(*this),
-		source_camera(*this),
-		destination_camera(*this)
-	{
-		source_image_input.set_name("im");
-		destination_depth_input.set_name("di");
-		destination_depth_mask_input.set_name("di mask");
-		destination_image_output.set_name("im");
-		destination_image_mask_output.set_name("im mask");
-		source_camera.set_name("source cam");
-		destination_camera.set_name("dest cam");
-	}
+	explicit image_reverse_warp_filter(mf::flow::filter& filt) :
+		mf::flow::filter_handler(filt),
+		source_image_input(filt, "im"),
+		destination_depth_input(filt, "di"),
+		destination_depth_mask_input(filt, "di mask"),
+		destination_image_output(filt, "im"),
+		destination_image_mask_output(filt, "im mask"),
+		source_camera(filt, "source cam"),
+		destination_camera(filt, "dest cam") { }
 	
 	void setup() override;
 	void process(job_type& job) override;	

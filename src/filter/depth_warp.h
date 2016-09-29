@@ -21,13 +21,14 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #ifndef VW_FILTER_DEPTH_WARP_H_
 #define VW_FILTER_DEPTH_WARP_H_
 
+#include <mf/filter/filter_handler.h>
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_parameter.h>
 #include "../common.h"
 
 namespace vs {
 
-class depth_warp_filter : public mf::flow::filter {
+class depth_warp_filter : public mf::flow::filter_handler {
 public:
 	input_type<2, integral_depth_type> depth_input;
 	output_type<2, real_depth_type> depth_output;
@@ -36,19 +37,13 @@ public:
 	parameter_type<camera_type> source_camera;
 	parameter_type<camera_type> destination_camera;
 	
-	depth_warp_filter() :
-		depth_input(*this),
-		depth_output(*this),
-		depth_mask_output(*this),
-		source_camera(*this),
-		destination_camera(*this)
-	{
-		depth_input.set_name("di");
-		depth_output.set_name("di");
-		depth_mask_output.set_name("di mask");
-		source_camera.set_name("source cam");
-		destination_camera.set_name("dest cam");
-	}
+	explicit depth_warp_filter(mf::flow::filter& filt) :
+		mf::flow::filter_handler(filt),
+		depth_input(filt, "di"),
+		depth_output(filt, "di"),
+		depth_mask_output(filt, "di mask"),
+		source_camera(filt, "source cam"),
+		destination_camera(filt, "dest cam") { }
 
 	void setup() override;
 	void process(job_type& job) override;	
