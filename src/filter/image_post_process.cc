@@ -66,7 +66,9 @@ bool image_post_process_filter::should_erode_right_(job_type& job) const {
 	camera_type source_cam = job.param(source_camera);
 	camera_type virtual_cam = job.param(virtual_camera);
 
-	return (source_cam.absolute_pose().position[0] > virtual_cam.absolute_pose().position[0]);
+	auto projected_virtual_cam_center = source_cam.project(virtual_cam.relative_pose().position);
+
+	return (projected_virtual_cam_center[0] > (source_cam.image_size()[0] / 2));
 }
 
 
@@ -105,19 +107,18 @@ void image_post_process_filter::process(job_type& job) {
 	cv::dilate(bound, bound, kernel.cv_mat());
 	cv::bitwise_and(in_img.cv_mask_mat(), bound, bound);
 
-		//cv::Mat_<rgb_color> img_ex;
-		//in_img.cv_mat().copyTo(img_ex);
-		//img_ex.setTo(cv::Vec<uchar, 3>(0,0,0), in_img.cv_mask_mat()==0);
-
-
-		//image_export(image_view<rgb_color>(img_ex), "img/" + name() + ".png");
-		//img_ex.setTo(cv::Vec<uchar, 3>(255,0,0), bound);
-		//image_export(image_view<rgb_color>(img_ex), "img/" + name() + " bounds.png");
-
+	/*
+		cv::Mat_<rgb_color> img_ex;
+		in_img.cv_mat().copyTo(img_ex);
+		img_ex.setTo(cv::Vec<uchar, 3>(0,0,0), in_img.cv_mask_mat()==0);
+		image_export(image_view<rgb_color>(img_ex), "img/" + this_filter().name() + ".png");
+		img_ex.setTo(cv::Vec<uchar, 3>(255,0,0), bound);
+		image_export(image_view<rgb_color>(img_ex), "img/" + this_filter().name() + " bounds.png");
+	*/
 
 	out = in;
 	out_mask = in_mask;
-	out_img.cv_mask_mat().setTo(tri_mask_clear, bound);
+	out_img.cv_mask_mat().setTo(tri_mask_unstable, bound);
 }
 
 

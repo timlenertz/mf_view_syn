@@ -88,7 +88,7 @@ void depth_post_process_filter::process(job_type& job) {
 	depth.copyTo(out_img.cv_mat());
 	cv::bitwise_not(holes, out_img.cv_mask_mat());
 	
-	//image_export(make_masked_image_view<real_depth_type, mask_type>(out, out_mask), "img/" + name()+".png");
+	//image_export(make_masked_image_view<real_depth_type, mask_type>(out, out_mask), "img/" + this_filter().name()+".png");
 }
 
 }

@@ -35,14 +35,14 @@ class result_blend_filter : public mf::flow::filter_handler {
 public:
 	struct input_branch {
 		input_type<2, color_type> image_input;
-		input_type<2, real_depth_type> depth_input;
 		input_type<2, tri_mask_type> mask_input;
+		input_type<2, real_depth_type> depth_input;
 		parameter_type<camera_type> source_camera;
 		
 		input_branch(result_blend_filter& hnd, const std::string& name) :
 			image_input(hnd.this_filter(), name + " im"),
-			depth_input(hnd.this_filter(), name + " di"),
 			mask_input(hnd.this_filter(), name + " mask"),
+			depth_input(hnd.this_filter(), name + " di"),
 			source_camera(hnd.this_filter(), name + " cam") { }
 	};
 	

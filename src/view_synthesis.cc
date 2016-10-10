@@ -25,6 +25,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "filter/depth_warp.h"
 #include "filter/image_post_process.h"
 #include "filter/image_reverse_warp.h"
+#include "filter/image_warp.h"
 #include "filter/result_blend.h"
 #include "filter/result_post_process.h"
 #include "filter/scale.h"
@@ -47,7 +48,7 @@ view_synthesis::view_synthesis(const configuration& config) :
 	configuration_(config) { }
 
 
-auto view_synthesis::setup_branch_(const configuration::input_view& view) -> branch_end {
+auto view_synthesis::setup_branch_forward_warp_(const configuration::input_view& view) -> branch_end {
 	auto input_shape = configuration_.input_shape();
 	int yuv_sampling = 420;
 
@@ -64,6 +65,73 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 		view.depth_sequence_file, flip(input_shape), yuv_sampling
 	);
 	depth_source.set_name(view.name + " depth source");
+	
+	
+	
+	// image+depth scaling
+	scale_filter<rgb_color>* image_scale_handler = nullptr;
+	scale_filter<integral_depth_type>* depth_scale_handler = nullptr;
+	if(configuration_["input"].count("scale") > 0) {
+		auto& image_scale = graph_.add_filter<scale_filter<rgb_color>>();
+		image_scale.set_name("image scale");
+		image_scale->output_size = flip(configuration_.scaled_shape());
+		auto& depth_scale = graph_.add_filter<scale_filter<integral_depth_type>>();
+		depth_scale.set_name("depth scale");
+		depth_scale->output_size = flip(configuration_.scaled_shape());
+		depth_scale->interpolation = cv::INTER_NEAREST;
+		
+		image_scale->input.connect(image_source->output, color_convert<rgb_color, ycbcr_color>);
+		depth_scale->input.connect(depth_source->output, ycbcr2depth);
+		
+		image_scale_handler = &image_scale.handler();
+		depth_scale_handler = &depth_scale.handler();
+	}
+	
+	
+	// image forwards warping
+	auto& image_warp = graph_.add_filter<image_warp_filter>();
+	image_warp.set_name(view.name + " image warp");
+	image_warp->source_camera.set_constant_value(view.camera);
+	image_warp->destination_camera.set_value_function(configuration_.virtual_camera());
+
+	if(depth_scale_handler != nullptr) image_warp->depth_input.connect(depth_scale_handler->output);
+	else image_warp->depth_input.connect(depth_source->output, ycbcr2depth);	
+
+	if(image_scale_handler != nullptr) image_warp->image_input.connect(image_scale_handler->output);
+	else image_warp->image_input.connect(image_source->output, color_convert<rgb_color, ycbcr_color>);		
+	
+	
+	image_warp.set_asynchonous(true);
+	image_warp.set_prefetch_duration(1);
+	
+	// brand end that connected to blender
+	return branch_end {
+		image_warp->image_output,
+		image_warp->depth_output,
+		image_warp->mask_output,
+		image_warp->source_camera
+	};
+}
+
+
+auto view_synthesis::setup_branch_vsrs_(const configuration::input_view& view) -> branch_end {
+	auto input_shape = configuration_.input_shape();
+	int yuv_sampling = 420;
+
+	auto ycbcr2depth = [](ycbcr_color col) { return col.y; };
+
+	// image source
+	auto& image_source = graph_.add_filter<flow::importer_filter<yuv_importer>>(
+		view.image_sequence_file, flip(input_shape), yuv_sampling
+	);
+	image_source.set_name(view.name + " image source");
+	
+	// depth source
+	auto& depth_source = graph_.add_filter<flow::importer_filter<yuv_importer>>(
+		view.depth_sequence_file, flip(input_shape), yuv_sampling
+	);
+	depth_source.set_name(view.name + " depth source");
+	
 	
 	// image+depth scaling
 	scale_filter<rgb_color>* image_scale_handler = nullptr;
@@ -83,7 +151,7 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 		image_scale_handler = &image_scale.handler();
 		depth_scale_handler = &depth_scale.handler();
 	}
-		
+	
 	// depth forwards warping
 	auto& depth_warp = graph_.add_filter<depth_warp_filter>();
 	depth_warp.set_name(view.name + " depth warp");
@@ -112,19 +180,25 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 	image_warp->source_camera.set_reference(depth_warp->source_camera);
 	image_warp->destination_camera.set_reference(depth_warp->destination_camera);
 
+
+
 	// image refinement
 	auto& image_post = graph_.add_filter<image_post_process_filter>();
 	image_post.set_name(view.name + " image refine");
+
 	image_post->image_input.connect(image_warp->destination_image_output);
 	image_post->image_mask_input.connect(image_warp->destination_image_mask_output);
 	image_post->source_camera.set_reference(depth_warp->source_camera);
 	image_post->virtual_camera.set_reference(depth_warp->destination_camera);
+	
+	
 	image_post->configure(configuration_["synthesis"]["image_refine"]);
 	
-	//image_post.set_asynchonous(true);
-//	image_post.set_prefetch_duration(0);
+	image_post.set_asynchonous(true);
+	image_post.set_prefetch_duration(1);
 	
 	// brand end that connected to blender
+	
 	return branch_end {
 		image_post->image_output,
 		depth_post->depth_output,
@@ -134,7 +208,20 @@ auto view_synthesis::setup_branch_(const configuration::input_view& view) -> bra
 }
 
 
+
+auto view_synthesis::setup_branch_(const configuration::input_view& view) -> branch_end {
+	if(mode_ == mode::forward_warp) return setup_branch_forward_warp_(view);
+	else if(mode_ == mode::vsrs) return setup_branch_vsrs_(view);
+	else throw std::logic_error("invalid mode");
+}
+
+
 void view_synthesis::setup() {
+	std::string md = configuration_["synthesis"]["mode"];
+	if(md == "forward_warp") mode_ = mode::forward_warp;
+	else if(md == "vsrs") mode_ = mode::vsrs;
+	else throw configuration_error("invalid mode");
+		
 	// blender
 	auto& blend = graph_.add_filter<result_blend_filter>();
 	blend.set_name("blend");
@@ -148,7 +235,7 @@ void view_synthesis::setup() {
 		b_in.image_input.connect(b_end.image_output);
 		b_in.mask_input.connect(b_end.mask_output);
 
-		if(configuration_["synthesis"]["blend"].value("depth_based_blending", false))
+		//if(configuration_["synthesis"]["blend"].value("depth_based_blending", false))
 			b_in.depth_input.connect(b_end.depth_output);
 
 		b_in.source_camera.set_reference(b_end.source_camera);
@@ -196,7 +283,7 @@ void view_synthesis::run() {
 	
 	graph_.node_graph_->set_diagnostic(timeline);
 	
-	graph_.run_for(100);
+	graph_.run_for(127);
 	graph_.node_graph_->stop();
 	
 	std::cerr << "stopped" << std::endl;

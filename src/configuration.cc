@@ -13,32 +13,44 @@ namespace vs {
 using namespace mf;
 using namespace std::literals;
 
-rs_camera_array& configuration::camera_array_() const {
-	if(camera_arr_) return *camera_arr_;
+rs_camera_array& configuration::input_camera_array_() const {
+	if(input_camera_arr_) return *input_camera_arr_;
 		
-	camera_arr_.reset(new rs_camera_array(
+	input_camera_arr_.reset(new rs_camera_array(
 		json_["input"]["camera_description_file"],
-		depth_projection_(),
-		scaled_shape(),
-		json_["input"].value("scale", 1.0)
+		input_depth_projection_()
 	));
-	return *camera_arr_;
+	return *input_camera_arr_;
 }
 
 
-depth_projection_parameters configuration::depth_projection_() const {
-	depth_projection_parameters dparam;
-	dparam.z_near = json_["input"]["depth"]["z_near"];
-	dparam.z_far = json_["input"]["depth"]["z_far"];
-	dparam.flip_z = json_["input"]["depth"]["z_flipped"];
+rs_camera_array& configuration::output_camera_array_() const {
+	if(output_camera_arr_) return *output_camera_arr_;
+		
+	output_camera_arr_.reset(new rs_camera_array(
+		json_["output"]["camera_description_file"],
+		output_depth_projection_()
+	));
+	return *output_camera_arr_;
+}
+
+
+depth_projection_parameters configuration::input_depth_projection_() const {
+	auto dparam = depth_projection_parameters::unsigned_normalized_disparity(
+		json_["input"]["depth"]["z_near"], json_["input"]["depth"]["z_far"]
+	);
 	
-	if(json_["input"]["depth"]["type"].get<std::string>() == "disparity")
-		dparam.range = depth_projection_parameters::unsigned_normalized_disparity;
-	else
+	if(json_["input"]["depth"]["type"].get<std::string>() != "disparity")
 		throw configuration_error("invalid input depth type: " + json_["input"]["depth"]["type"].get<std::string>());
 
 	return dparam;
 }
+
+
+depth_projection_parameters configuration::output_depth_projection_() const {
+	return input_depth_projection_();
+}
+
 
 
 configuration::configuration(const std::string& filename) {		
@@ -56,14 +68,11 @@ ndsize<2> configuration::input_shape() const {
 	);
 }
 
-ndsize<2> configuration::scaled_shape() const {
-	ndsize<2> in_shape = input_shape();
-	if(json_["input"].count("scale") != 0) {
-		double factor = json_["input"]["scale"];
-		if(factor != 1.0) return make_ndsize(factor * in_shape[0], factor * in_shape[1]);
-	}
-	return in_shape;
+
+mf::ndsize<2> configuration::scaled_shape() const {
+	return image_camera::scaled_image_size(input_shape(), json_["input"].value("scale", 1.0));
 }
+
 
 
 std::size_t configuration::input_views_count() const {
@@ -81,15 +90,19 @@ std::size_t configuration::input_views_count() const {
 
 
 auto configuration::input_view_at(std::ptrdiff_t i) const -> input_view {
-	std::string image_sequence_file, depth_sequence_file, camera_name;
+	std::string image_sequence_file, depth_sequence_file;
+	const mf::projection_camera* input_camera = nullptr;
 	std::string name = std::to_string(i);
+
+	rs_camera_array& cam_arr = input_camera_array_();	
 
 	auto views = json_["input"]["views"];
 	if(views.is_array()) {
 		auto view = json_["input"]["views"][i];
 		image_sequence_file = view["image_sequence_file"];
 		depth_sequence_file = view["depth_sequence_file"];
-		camera_name = view["camera_name"];
+		std::string cam_name = view["camera_name"];
+		input_camera = &cam_arr[cam_name];
 		if(view.count("name") != 0) name = view["name"];
 		
 	} else if(views.is_object()) {
@@ -108,9 +121,17 @@ auto configuration::input_view_at(std::ptrdiff_t i) const -> input_view {
 				index_str = std::string(placeholder_length - index_str.length(), '0') + index_str;
 		}
 		
+		if(views.count("camera_name") != 0) {
+			std::string cam_name = replace_all(views["camera_name"], placeholder, index_str);
+			input_camera = &cam_arr[cam_name];
+		} else if(views.count("from_camera_index") != 0) {
+			input_camera = &cam_arr[i + (int)views["from_camera_index"]];
+		} else {
+			throw configuration_error("input view camera not specified");
+		}
+		
 		image_sequence_file = replace_all(views["image_sequence_file"], placeholder, index_str);
 		depth_sequence_file = replace_all(views["depth_sequence_file"], placeholder, index_str);
-		camera_name = replace_all(views["camera_name"], placeholder, index_str);
 		image_sequence_file = replace_all(views["image_sequence_file"], placeholder, index_str);
 		if(views.count("name") != 0) name = replace_all(views["name"], placeholder, index_str);
 
@@ -121,11 +142,10 @@ auto configuration::input_view_at(std::ptrdiff_t i) const -> input_view {
 
 	if(! file_exists(image_sequence_file)) throw configuration_error("input view image sequence file does not exist");
 	if(! file_exists(depth_sequence_file)) throw configuration_error("input view depth sequence file does not exist");
-
-	rs_camera_array& cam_arr = camera_array_();	
 		
-	camera_type cam(cam_arr[camera_name], scaled_shape());
+	camera_type cam(*input_camera, input_shape());
 	cam.flip_pixel_coordinates();
+	cam.scale(json_["input"].value("scale", 1.0));
 	
 	return {
 		name,
@@ -133,6 +153,33 @@ auto configuration::input_view_at(std::ptrdiff_t i) const -> input_view {
 		image_sequence_file,
 		depth_sequence_file,
 	};
+}
+
+
+camera_type configuration::output_camera_at(mf::time_unit t) const {
+	const mf::projection_camera* output_camera = nullptr;
+
+	rs_camera_array& cam_arr = output_camera_array_();	
+
+	auto views = json_["output"]["views"];
+	if(views.is_array()) {
+		auto view = json_["output"]["views"][t];
+		std::string cam_name = view["camera_name"];
+		output_camera = &cam_arr[cam_name];
+		
+	} else if(views.is_object()) {
+		output_camera = &cam_arr[t];
+
+	} else {
+		throw configuration_error("output views invalid");
+	
+	} 
+		
+	camera_type cam(*output_camera, input_shape());
+	cam.flip_pixel_coordinates();
+	cam.scale(json_["input"].value("scale", 1.0));
+	
+	return cam;
 }
 
 
@@ -168,7 +215,9 @@ raw_video_frame_format<ycbcr_color> configuration::output_ycbcr_raw_format() con
 ///////////////
 
 
-camera_type configuration::virtual_camera_functor::operator()(time_unit frame_index) const {
+camera_type configuration::virtual_camera_functor::operator()(mf::time_unit t) const {
+	return configuration_.output_camera_at(t);
+	/*
 	std::ptrdiff_t first = 0;
 	std::ptrdiff_t last = configuration_.input_views_count() - 1;
 	
@@ -185,6 +234,7 @@ camera_type configuration::virtual_camera_functor::operator()(time_unit frame_in
 	camera_type virtual_cam = left_cam;
 	virtual_cam.set_relative_pose(virtual_pose);
 	return virtual_cam;
+	*/
 }
 
 

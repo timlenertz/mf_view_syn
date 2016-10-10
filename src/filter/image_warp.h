@@ -18,51 +18,41 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef VS_VIEW_SYNTHESIS_H_
-#define VS_VIEW_SYNTHESIS_H_
+#ifndef VW_FILTER_IMAGE_WARP_H_
+#define VW_FILTER_IMAGE_WARP_H_
 
-#include <string>
-#include <tuple>
-#include <mf/color.h>
-#include <mf/filter/filter_graph.h>
+#include <mf/filter/filter_handler.h>
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_parameter.h>
-#include "common.h"
-#include "configuration.h"
+#include "../common.h"
 
 namespace vs {
 
-class view_synthesis {
-private:
-	enum class mode {
-		forward_warp,
-		vsrs
-	};
-
-	struct branch_end {
-		mf::flow::filter_output<2, color_type>& image_output;
-		mf::flow::filter_output<2, real_depth_type>& depth_output;
-		mf::flow::filter_output<2, tri_mask_type>& mask_output;
-		mf::flow::filter_parameter<camera_type>& source_camera;
-	};
-	
-	const configuration& configuration_;
-	mode mode_;
-	mf::flow::filter_graph graph_;
-		
-	branch_end setup_branch_forward_warp_(const configuration::input_view&);	
-	branch_end setup_branch_vsrs_(const configuration::input_view&);	
-	branch_end setup_branch_(const configuration::input_view&);	
-		
+class image_warp_filter : public mf::flow::filter_handler {
 public:
-	explicit view_synthesis(const configuration&);
+	input_type<2, mf::rgb_color> image_input;
+	input_type<2, integral_depth_type> depth_input;
+	output_type<2, mf::rgb_color> image_output;
+	output_type<2, real_depth_type> depth_output;
+	output_type<2, tri_mask_type> mask_output;
+	
+	parameter_type<camera_type> source_camera;
+	parameter_type<camera_type> destination_camera;
+	
+	explicit image_warp_filter(mf::flow::filter& filt) :
+		mf::flow::filter_handler(filt),
+		image_input(filt, "im"),
+		depth_input(filt, "di"),
+		image_output(filt, "im"),
+		depth_output(filt, "di"),
+		mask_output(filt, "mask"),
+		source_camera(filt, "source cam"),
+		destination_camera(filt, "dest cam") { }
 
-	void setup();
-	void run();
+	void setup() override;
+	void process(job_type& job) override;	
 };
-
-
+	
 }
 
 #endif
-

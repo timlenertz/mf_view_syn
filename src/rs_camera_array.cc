@@ -24,14 +24,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include <mf/eigen.h>
 #include <mf/geometry/pose.h>
 
-#include <iostream>
-
 namespace vs {
 
 using namespace mf;
 
 projection_camera rs_camera_array::read_camera_
-(std::istream& str, const depth_projection_parameters& dparam, const ndsize<2>& img_sz, double scale) {
+(std::istream& str, const depth_projection_parameters& dparam) {
 	str.exceptions(std::ios_base::badbit | std::ios_base::failbit | std::ios_base::eofbit);
 	
 	Eigen_mat3 intrinsic = Eigen_mat3::Zero();
@@ -39,12 +37,7 @@ projection_camera rs_camera_array::read_camera_
 	str >> intrinsic(1, 0) >> intrinsic(1, 1) >> intrinsic(1, 2);
 	str >> intrinsic(2, 0) >> intrinsic(2, 1) >> intrinsic(2, 2);
 	
-	intrinsic(0, 0) *= scale;
-	intrinsic(1, 1) *= scale;
-	intrinsic(0, 2) *= scale;
-	intrinsic(1, 2) *= scale;
-	
-	Eigen_scalar gomi[2]; // ?
+	Eigen_scalar gomi[2]; // unused, always 0
 	str >> gomi[0] >> gomi[1];
 
 	Eigen_mat3 rotation;
@@ -56,12 +49,12 @@ projection_camera rs_camera_array::read_camera_
 	Eigen_affine3 extrinsic_affine;
 	extrinsic_affine = Eigen_translation3(translation) * Eigen_affine3(rotation).inverse();
 		
-	return projection_camera(extrinsic_affine, intrinsic, dparam, img_sz);
+	return projection_camera(extrinsic_affine, intrinsic, dparam);
 }
 
 
 rs_camera_array::rs_camera_array
-(const std::string& filename, const depth_projection_parameters& dparam, const ndsize<2>& img_sz, double scale) {
+(const std::string& filename, const depth_projection_parameters& dparam) {
 	std::ifstream file(filename);
 	
 	for(;;) {
@@ -79,8 +72,9 @@ rs_camera_array::rs_camera_array
 
 		cameras_.insert(std::make_pair(
 			name,
-			read_camera_(file, dparam, img_sz, scale)
+			read_camera_(file, dparam)
 		));
+		camera_array_.push_back(name);
 	}
 }
 
@@ -92,6 +86,11 @@ bool rs_camera_array::has(const std::string& name) const {
 
 const projection_camera& rs_camera_array::operator[](const std::string& name) const {
 	return cameras_.at(name);
+}
+
+
+const projection_camera& rs_camera_array::operator[](std::ptrdiff_t	index) const {
+	return cameras_.at(camera_array_.at(index));
 }
 
 

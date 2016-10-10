@@ -7,13 +7,12 @@
 		"depth" : {
 			"z_near" : 15.0,
 			"z_far" : 100.0,
-			"z_flipped" : false,
 			"type" : "disparity"
 		},
-		"camera_description_file" : "config/poznan_blocks_cam.txt",
+		"camera_description_file" : "config/poznan_blocks_camera_parameters.txt",
 		"views" : {
-			"from" : 2,
-			"to" : 8,
+			"from" : 0,
+			"to" : 9,
 			"step" : 1,
 			"placeholder" : "#",
 			"camera_name" : "param_cam#",
@@ -23,19 +22,20 @@
 	},
 	
 	"synthesis" : {
+		"mode" : "forward_warp",
 		"depth_refine" : {
-			"kernel_diameter" : 3,
+			"kernel_diameter" : 5,
 			"outer_iterations" : 2,
 			"inner_smooth_iterations" : 2
 		},
 		"image_refine" : {
-			"kernel_diameter" : 0
+			"kernel_diameter" : 8
 		},
 		"blend" : {
 			"color_blending" : true,
 			"depth_based_blending" : false,
 			"color_blending_maximal_depth_difference" : 0.000,
-			"selected_inputs_count" : 2
+			"selected_inputs_count" : 1
 		},
 		"result_refine" : {
 			"inpaint_background_color" : [0, 128, 128],
@@ -44,6 +44,12 @@
 	},
 	
 	"output" : {
+		"camera_description_file" : "config/poznan_blocks_camera_parameters_interpolated.txt",
+		"views" : {
+			"from_camera_index" : 0,
+			"to_camera_index" : 126
+		},
+		
 		"image_sequence_file" : "blocks.yuv",
 		"frames_per_second" : 20.0,
 		"format" : "raw",

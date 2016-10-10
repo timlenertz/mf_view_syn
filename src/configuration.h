@@ -33,10 +33,13 @@ public:
 	
 private:
 	nlohmann::json json_;
-	mutable std::unique_ptr<rs_camera_array> camera_arr_;
+	mutable std::unique_ptr<rs_camera_array> input_camera_arr_;
+	mutable std::unique_ptr<rs_camera_array> output_camera_arr_;
 
-	rs_camera_array& camera_array_() const;
-	mf::depth_projection_parameters depth_projection_() const;
+	rs_camera_array& input_camera_array_() const;
+	rs_camera_array& output_camera_array_() const;
+	mf::depth_projection_parameters input_depth_projection_() const;
+	mf::depth_projection_parameters output_depth_projection_() const;
 
 public:
 	explicit configuration(const std::string& filename);
@@ -47,6 +50,8 @@ public:
 	
 	std::size_t input_views_count() const;
 	input_view input_view_at(std::ptrdiff_t i) const;
+
+	camera_type output_camera_at(mf::time_unit t) const;
 	
 	virtual_camera_functor virtual_camera() const {
 		return virtual_camera_functor(*this);
