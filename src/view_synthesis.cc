@@ -71,7 +71,7 @@ auto view_synthesis::setup_branch_forward_warp_(const configuration::input_view&
 	// image+depth scaling
 	scale_filter<rgb_color>* image_scale_handler = nullptr;
 	scale_filter<integral_depth_type>* depth_scale_handler = nullptr;
-	if(configuration_["input"].count("scale") > 0) {
+	if(configuration_["input"].value("scale", 1.0) != 1.0) {
 		auto& image_scale = graph_.add_filter<scale_filter<rgb_color>>();
 		image_scale.set_name("image scale");
 		image_scale->output_size = flip(configuration_.scaled_shape());

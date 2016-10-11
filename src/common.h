@@ -33,7 +33,7 @@ using integral_depth_type = std::uint8_t;
 using real_depth_type = mf::real;
 using color_type = mf::rgb_color;
 
-using camera_type = mf::projection_image_camera<integral_depth_type>;
+using camera_type = mf::projection_image_camera<mf::depth_image_direct_mapping<integral_depth_type>>;
 
 using mask_type = std::uint8_t;
 using tri_mask_type	= std::uint8_t;

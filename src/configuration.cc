@@ -39,6 +39,8 @@ depth_projection_parameters configuration::input_depth_projection_() const {
 	auto dparam = depth_projection_parameters::unsigned_normalized_disparity(
 		json_["input"]["depth"]["z_near"], json_["input"]["depth"]["z_far"]
 	);
+	dparam.d_far = 0;
+	dparam.d_near = 255;
 	
 	if(json_["input"]["depth"]["type"].get<std::string>() != "disparity")
 		throw configuration_error("invalid input depth type: " + json_["input"]["depth"]["type"].get<std::string>());

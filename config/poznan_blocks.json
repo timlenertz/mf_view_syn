@@ -22,7 +22,7 @@
 	},
 	
 	"synthesis" : {
-		"mode" : "forward_warp",
+		"mode" : "vsrs",
 		"depth_refine" : {
 			"kernel_diameter" : 5,
 			"outer_iterations" : 2,

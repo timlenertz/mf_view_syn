@@ -47,7 +47,10 @@ projection_camera rs_camera_array::read_camera_
 	str >> rotation(2, 0) >> rotation(2, 1) >> rotation(2, 2); str >> translation(2);
 	
 	Eigen_affine3 extrinsic_affine;
-	extrinsic_affine = Eigen_translation3(translation) * Eigen_affine3(rotation).inverse();
+
+	extrinsic_affine = Eigen_affine3(rotation) * Eigen_translation3(-translation);
+	extrinsic_affine = extrinsic_affine.inverse();
+	//extrinsic_affine = Eigen_translation3(translation) * Eigen_affine3(rotation).inverse();
 		
 	return projection_camera(extrinsic_affine, intrinsic, dparam);
 }
