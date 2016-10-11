@@ -14,7 +14,7 @@
 		"views" : {
 			"from" : 5,
 			"to" : 84,
-			"step" : 5,
+			"step" : 20,
 			"placeholder" : "#",
 			"placeholder_length" : 2,
 			"camera_name" : "param_ptm#",
@@ -46,6 +46,16 @@
 	},
 	
 	"output" : {
+		"camera_description_file" : "config/bbb_bunny_cam.txt",
+		"views" : {
+			"from" : 5,
+			"to" : 84,
+			"step" : 1,
+			"placeholder" : "#",
+			"placeholder_length" : 2,
+			"camera_name" : "param_ptm#"
+		},
+		
 		"image_sequence_file" : "bunny.yuv",
 		"frames_per_second" : 20.0,
 		"format" : "raw",

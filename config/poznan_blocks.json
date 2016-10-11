@@ -35,7 +35,7 @@
 			"color_blending" : true,
 			"depth_based_blending" : false,
 			"color_blending_maximal_depth_difference" : 0.000,
-			"selected_inputs_count" : 1
+			"selected_inputs_count" : 2
 		},
 		"result_refine" : {
 			"inpaint_background_color" : [0, 128, 128],
