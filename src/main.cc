@@ -24,6 +24,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "configuration.h"
 #include "view_synthesis.h"
 
+#include <mf/io/yuv_importer.h>
+
 using namespace vs;
 
 int main(int argc, const char* argv[]) {
@@ -33,6 +35,9 @@ int main(int argc, const char* argv[]) {
 		std::cout << "must provide configuration file argument!" << std::endl;
 		return EXIT_FAILURE;
 	}
+	
+			Assert(argc >= 3);
+			mf::yuv_importer::Animation_frame = std::strtol(argv[2], nullptr, 10);
 	
 	std::cout << "setting up..." << std::endl;
 	configuration config(argv[1]);
