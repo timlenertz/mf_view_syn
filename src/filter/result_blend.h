@@ -69,6 +69,7 @@ public:
 	enum class blend_mode_type { color, max_weight, min_depth };
 
 	output_type<2, color_type> virtual_image_output;
+	output_type<2, real_depth_type> virtual_depth_output;
 	output_type<2, mask_type> virtual_mask_output;
 	parameter_type<camera_type> virtual_camera;
 	
@@ -85,6 +86,7 @@ public:
 		mf::flow::filter_handler(filt),
 		virtual_image_output(filt, "im"),
 		virtual_mask_output(filt, "im mask"),
+		virtual_depth_output(filt, "im di"),
 		virtual_camera(filt, "virtual cam"),
 		color_blending(filt, "color blending"),
 		color_blending_maximal_depth_difference(filt, "color blend max d diff"),

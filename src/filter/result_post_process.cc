@@ -49,10 +49,13 @@ void result_post_process_filter::configure(const json& j) {
 
 void result_post_process_filter::setup() {
 	image_output.define_frame_shape(image_input.frame_shape());
+	image_depth_output.define_frame_shape(image_input.frame_shape());
 }
 
 
 void result_post_process_filter::process(job_type& job) {
+	job.out(image_depth_output)=job.in(image_depth_input);
+	
 	auto in = job.in(image_input);
 	auto in_mask = job.in(image_mask_input);
 	auto out = job.out(image_output);	
@@ -75,7 +78,7 @@ void result_post_process_filter::process(job_type& job) {
 	
 	in_img_mat.setTo(background, holes);
 	out = in;
-	cv::inpaint(in_img_mat, holes, out_img_mat, radius, cv::INPAINT_NS);	
+	//cv::inpaint(in_img_mat, holes, out_img_mat, radius, cv::INPAINT_NS);	
 }
 
 }

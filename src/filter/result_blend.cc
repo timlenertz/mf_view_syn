@@ -43,6 +43,11 @@ void result_blend_filter::input_branch_selection::add(input_branch& branch, mf::
 
 
 auto result_blend_filter::select_branches_(job_type& job) const -> input_branch_selection {
+	input_branch_selection selection;
+	selection.add(*input_branches_[0], 1.0);
+	return selection;
+
+	/*
 	std::ptrdiff_t n = job.param(selected_inputs_count);
 	Eigen_vec3 virtual_position = job.param(virtual_camera).absolute_pose().position;
 
@@ -68,6 +73,7 @@ auto result_blend_filter::select_branches_(job_type& job) const -> input_branch_
 		selection.add(*branches[i], distance(*branches[i]));
 
 	return selection;
+	*/
 }
 
 
@@ -86,10 +92,11 @@ auto result_blend_filter::add_input_branch(const std::string& name) -> input_bra
 
 
 void result_blend_filter::setup() {
-	Assert(input_branches_.size() >= 2);
+	//Assert(input_branches_.size() >= 2);
 	shape_ = input_branches_.front()->image_input.frame_shape();
 	virtual_image_output.define_frame_shape(shape_);
 	virtual_mask_output.define_frame_shape(shape_);
+	virtual_depth_output.define_frame_shape(shape_);
 }
 
 
@@ -111,13 +118,16 @@ void result_blend_filter::process_(job_type& job) {
 	constexpr std::size_t n = N;
 
 	std::vector<ndarray_view<2, rgb_color>> image_in;
+	std::vector<ndarray_view<2, real_depth_type>> depth_in;
 	std::vector<ndarray_view<2, tri_mask_type>> mask_in;
 	image_in.reserve(n); mask_in.reserve(n);
 	for(const auto& selected_entry : sel.entries) {
 		image_in.push_back(job.in(selected_entry.branch.image_input));
+		depth_in.push_back(job.in(selected_entry.branch.depth_input));
 		mask_in.push_back(job.in(selected_entry.branch.mask_input));
 	}
 	auto virtual_out = job.out(virtual_image_output);
+	auto virtual_out_depth = job.out(virtual_depth_output);
 	auto virtual_out_mask = job.out(virtual_mask_output);
 
 	std::vector<rgb_color> in_color;
@@ -130,6 +140,8 @@ void result_blend_filter::process_(job_type& job) {
 		
 		in_color.clear();
 		in_distance.clear();
+		
+		real depth = 0;
 		
 		bool has_stables = false;
 		for(std::ptrdiff_t ent = 0; ent < n; ++ent) {	
@@ -145,6 +157,8 @@ void result_blend_filter::process_(job_type& job) {
 			else if(msk == tri_mask_unstable && has_stables) continue;
 			
 			in_color.push_back(image_in[ent].at(coord));
+			
+			depth = depth_in[ent].at(coord);
 			
 			real dist = sel.entries[ent].distance;
 			in_distance.push_back(dist);
@@ -178,6 +192,7 @@ void result_blend_filter::process_(job_type& job) {
 		
 		virtual_out.at(coord) = rgb_color(r, g, b);
 		virtual_out_mask.at(coord) = mask_set;
+		virtual_out_depth.at(coord) = depth;
 	}
 	
 	//image_export(make_masked_image_view<rgb_color, mask_type>(virtual_out, virtual_out_mask), "img/" + name()+".png");

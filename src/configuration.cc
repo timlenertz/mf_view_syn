@@ -185,6 +185,13 @@ camera_type configuration::output_camera_at(mf::time_unit t) const {
 }
 
 
+camera_type configuration::output_camera(const Eigen_vec3& translation) const {
+	camera_type cam = output_camera_at(35);
+	cam.move(translation);
+	return cam;
+}
+
+
 bool configuration::output_rgb() const {
 	if(json_["output"]["raw_color"].get<std::string>() == "rgb") return true;
 	else if(json_["output"]["raw_color"].get<std::string>() == "ycbcr") return false;
@@ -217,8 +224,15 @@ raw_video_frame_format<ycbcr_color> configuration::output_ycbcr_raw_format() con
 ///////////////
 
 
-camera_type configuration::virtual_camera_functor::operator()(mf::time_unit t) const {
-	return configuration_.output_camera_at(t);
+camera_type configuration::virtual_camera_functor::operator()(mf::time_unit frame_index) const {
+	//return configuration_.output_camera_at(t);
+	
+	real n = 200;
+	real x = 1.0*std::cos(frame_index * pi / 200) + 0.4*std::cos(frame_index * pi / 70);
+
+	
+	return configuration_.output_camera(Eigen_vec3(x, -x, 0));
+
 	/*
 	std::ptrdiff_t first = 0;
 	std::ptrdiff_t last = configuration_.input_views_count() - 1;
@@ -229,10 +243,10 @@ camera_type configuration::virtual_camera_functor::operator()(mf::time_unit t) c
 	pose right = configuration_.input_view_at(last).camera.absolute_pose();
 	
 	real n = 100;
-	real t = -std::cos(frame_index * pi / n) / 2.0 + 0.5;
+	real t = 0.1*-std::cos(frame_index * pi / n) / 2.0 + 0.5;
 	//real t = frame_index / n;
 	pose virtual_pose = interpolate(left, right, t);
-
+	
 	camera_type virtual_cam = left_cam;
 	virtual_cam.set_relative_pose(virtual_pose);
 	return virtual_cam;

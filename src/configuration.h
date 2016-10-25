@@ -51,6 +51,8 @@ public:
 	std::size_t input_views_count() const;
 	input_view input_view_at(std::ptrdiff_t i) const;
 
+	camera_type output_camera(const mf::Eigen_vec3& translation) const;
+
 	camera_type output_camera_at(mf::time_unit t) const;
 	
 	virtual_camera_functor virtual_camera() const {

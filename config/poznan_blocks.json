@@ -11,8 +11,8 @@
 		},
 		"camera_description_file" : "config/poznan_blocks_camera_parameters.txt",
 		"views" : {
-			"from" : 0,
-			"to" : 9,
+			"from" : 4,
+			"to" : 4,
 			"step" : 1,
 			"placeholder" : "#",
 			"camera_name" : "param_cam#",
@@ -35,7 +35,7 @@
 			"color_blending" : true,
 			"depth_based_blending" : false,
 			"color_blending_maximal_depth_difference" : 0.000,
-			"selected_inputs_count" : 2
+			"selected_inputs_count" : 1
 		},
 		"result_refine" : {
 			"inpaint_background_color" : [0, 128, 128],
@@ -53,7 +53,7 @@
 		"image_sequence_file" : "blocks.yuv",
 		"frames_per_second" : 20.0,
 		"format" : "raw",
-		"raw_sampling" : "planar_420",
-		"raw_color" : "ycbcr"
+		"raw_color" : "rgb",
+		"raw_sampling" : "interleaved"
 	}
 }

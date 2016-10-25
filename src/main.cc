@@ -36,9 +36,6 @@ int main(int argc, const char* argv[]) {
 		return EXIT_FAILURE;
 	}
 	
-			Assert(argc >= 3);
-			mf::yuv_importer::Animation_frame = std::strtol(argv[2], nullptr, 10);
-	
 	std::cout << "setting up..." << std::endl;
 	configuration config(argv[1]);
 	view_synthesis syn(config);

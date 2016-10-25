@@ -28,7 +28,9 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #include "filter/image_warp.h"
 #include "filter/result_blend.h"
 #include "filter/result_post_process.h"
+#include "filter/gui_sink.h"
 #include "filter/scale.h"
+#include "filter/realtime_rewarp.h"
 #include <mf/filter/handler/exporter.h>
 #include <mf/filter/handler/importer.h>
 #include <mf/io/yuv_importer.h>
@@ -155,11 +157,16 @@ auto view_synthesis::setup_branch_vsrs_(const configuration::input_view& view) -
 	// depth forwards warping
 	auto& depth_warp = graph_.add_filter<depth_warp_filter>();
 	depth_warp.set_name(view.name + " depth warp");
-	depth_warp->source_camera.set_constant_value(view.camera);
-	depth_warp->destination_camera.set_value_function(configuration_.virtual_camera());
 
 	if(depth_scale_handler != nullptr) depth_warp->depth_input.connect(depth_scale_handler->output);
 	else depth_warp->depth_input.connect(depth_source->output, ycbcr2depth);	
+
+	depth_warp->source_camera.set_constant_value(view.camera);
+//	depth_warp->destination_camera.set_value_function(configuration_.virtual_camera());
+	depth_warp->destination_camera.set_dynamic( configuration_.virtual_camera()(0) );
+	vcam = &depth_warp->destination_camera;
+	//depth_warp->destination_camera.set_constant_value(configuration_.output_camera(Eigen_vec3(0, 0, 0)));
+
 	
 	// depth refinement
 	auto& depth_post = graph_.add_filter<depth_post_process_filter>();
@@ -225,13 +232,13 @@ void view_synthesis::setup() {
 	// blender
 	auto& blend = graph_.add_filter<result_blend_filter>();
 	blend.set_name("blend");
-	blend->virtual_camera.set_value_function(configuration_.virtual_camera());
 	
+	int i=1;
 	for(std::ptrdiff_t i = 0; i < configuration_.input_views_count(); ++i) {		
 		configuration::input_view view = configuration_.input_view_at(i);
 		branch_end b_end = setup_branch_(view);
 		result_blend_filter::input_branch& b_in = blend->add_input_branch(view.name);
-		
+				
 		b_in.image_input.connect(b_end.image_output);
 		b_in.mask_input.connect(b_end.mask_output);
 
@@ -240,7 +247,8 @@ void view_synthesis::setup() {
 
 		b_in.source_camera.set_reference(b_end.source_camera);
 	}
-	
+	blend->virtual_camera.set_reference(*vcam); /////
+		
 	blend->configure(configuration_["synthesis"]["blend"]);
 		
 	blend.set_asynchonous(false);
@@ -250,8 +258,37 @@ void view_synthesis::setup() {
 	result_post.set_name("refine");
 	result_post->image_input.connect(blend->virtual_image_output);
 	result_post->image_mask_input.connect(blend->virtual_mask_output);
+	result_post->image_depth_input.connect(blend->virtual_depth_output);
 	result_post->configure(configuration_["synthesis"]["result_refine"]);
 
+
+	// rewarp
+	auto& rewarp = graph_.add_filter<realtime_rewarp>();
+	rewarp.set_name("live rewarp");
+	rewarp->image_input.connect(result_post->image_output);
+	rewarp->depth_input.connect(result_post->image_depth_output);
+	//rewarp->source_camera.set_reference(blend->virtual_camera);
+	rewarp->source_camera.set_reference(*vcam, true, true);
+	//rewarp->destination_camera.set_constant_value(configuration_.output_camera(Eigen_vec3(0, 0, 1.0)));
+	rewarp->destination_camera.set_value_function(configuration_.virtual_camera());
+	rewarp.set_own_timing(flow::stream_timing::real_time());
+
+	// output
+	/*
+	auto& sink = graph_.add_filter<gui_sink>();
+	sink->input.connect(rewarp->image_output);
+	*/
+	
+	auto& vsink = graph_.add_filter<flow::exporter_filter<raw_video_exporter<rgb_color>>>(
+		configuration_["output"]["image_sequence_file"],
+		configuration_.output_rgb_raw_format()
+	);
+	vsink.set_name("video export");
+	vsink->input.connect(rewarp->image_output);
+	
+
+
+/*
 	// output
 	if(configuration_.output_rgb()) {
 		auto& sink = graph_.add_filter<flow::exporter_filter<raw_video_exporter<rgb_color>>>(
@@ -269,6 +306,7 @@ void view_synthesis::setup() {
 		sink.set_name("video export");
 		sink->input.connect(result_post->image_output, color_convert<ycbcr_color, rgb_color>);
 	}
+*/
 		
 	graph_.setup();
 }
@@ -283,8 +321,10 @@ void view_synthesis::run() {
 	
 	graph_.node_graph_->set_diagnostic(timeline);
 	
-	graph_.run_for(127);
-	graph_.node_graph_->stop();
+	try {
+	graph_.run_for(800);
+//	graph_.node_graph_->stop();
+	} catch(...) { }
 	
 	std::cerr << "stopped" << std::endl;
 	

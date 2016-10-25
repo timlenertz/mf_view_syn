@@ -18,36 +18,38 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef VW_FILTER_STEREO_SINK_H_
-#define VW_FILTER_STEREO_SINK_H_
+#ifndef VS_GUI_SINK_H_
+#define VS_GUI_SINK_H_
 
 #include <mf/filter/filter_handler.h>
 #include <mf/filter/filter.h>
 #include <mf/filter/filter_job.h>
 #include <mf/filter/filter_parameter.h>
-#include <mf/image/image_view.h>
-#include <mf/opencv.h>
-#include <mf/nd/ndcoord.h>
 #include "../common.h"
+#include <SDL2/SDL.h>
 
 namespace vs {
 
-class stereo_sink : public mf::flow::filter_handler {
+class gui_sink : public mf::flow::filter_handler {
 public:
-	input_type<2, rgb_color> left_input;
-	input_type<2, rgb_color> right_input;
-	parameter_type<mf::pose> left_pose;
-	parameter_type<mf::pose> right_pose;
-		
-	explicit stereo_sink(mf::flow::filter& filt) :
+	input_type<2, mf::rgb_color> input;
+	//parameter_type<camera_type> camera;
+	
+private:
+	SDL_Window* sdl_window_ = nullptr;
+	SDL_Surface* sdl_screen_surface_ = nullptr;
+
+public:
+	explicit gui_sink(mf::flow::filter& filt) :
 		mf::flow::filter_handler(filt),
-		left_input(filt, "left in"),
-		right_input(filt, "right in"),
-		left_pose(filt, "left pose"),
-		right_pose, "right in") { }
+		input(filt, "in")
+		//camera(filt, "cam")
+	{
+		this_filter().set_own_timing(mf::flow::stream_timing::real_time());
+		this_filter().set_name("gui sink");
+	}
 	
 	void setup() override;
-	void pre_process(job_type& job) override;
 	void process(job_type& job) override;
 };
 	

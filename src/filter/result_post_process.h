@@ -32,7 +32,9 @@ class result_post_process_filter : public mf::flow::filter_handler {
 public:
 	input_type<2, color_type> image_input;
 	input_type<2, mask_type> image_mask_input;
+	input_type<2, real_depth_type> image_depth_input;
 	output_type<2, color_type> image_output;
+	output_type<2, real_depth_type> image_depth_output;
 	
 	parameter_type<double> inpaint_radius;
 	parameter_type<color_type> inpaint_background;
@@ -41,7 +43,9 @@ public:
 		mf::flow::filter_handler(filt),
 		image_input(filt, "im"),
 		image_mask_input(filt, "im mask"),
+		image_depth_input(filt, "im di"),
 		image_output(filt, "im"),
+		image_depth_output(filt, "im di"),
 		inpaint_radius(filt, "inpaint radius"),
 		inpaint_background(filt, "inpaint background") { }
 	

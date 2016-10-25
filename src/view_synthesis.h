@@ -46,6 +46,8 @@ private:
 		mf::flow::filter_parameter<camera_type>& source_camera;
 	};
 	
+	mf::flow::filter_parameter<camera_type>* vcam;
+	
 	const configuration& configuration_;
 	mode mode_;
 	mf::flow::filter_graph graph_;

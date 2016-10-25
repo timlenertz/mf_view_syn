@@ -34,19 +34,19 @@ namespace vs {
 
 class realtime_rewarp : public mf::flow::filter_handler {
 public:
-	input_type<2, rgb_color> image_input;
+	input_type<2, mf::rgb_color> image_input;
 	input_type<2, real_depth_type> depth_input;
-	output_type<2, rgb_color> image_output;
-	parameter_type<mf::pose> input_pose;
-	parameter_type<mf::pose> output_pose;
+	output_type<2, mf::rgb_color> image_output;
+	parameter_type<camera_type> source_camera;
+	parameter_type<camera_type> destination_camera;
 		
-	explicit stereo_sink(mf::flow::filter& filt) :
+	explicit realtime_rewarp(mf::flow::filter& filt) :
 		mf::flow::filter_handler(filt),
 		image_input(filt, "im in"),
 		depth_input(filt, "di in"),
 		image_output(filt, "out"),
-		input_pose, "in pose") { }
-		output_pose, "out pose") { }
+		source_camera(filt, "in pose"),
+		destination_camera(filt, "out pose") { }
 	
 	void setup() override;
 	void process(job_type& job) override;
