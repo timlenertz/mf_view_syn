@@ -16,6 +16,9 @@ if(UNIX)
 
 elseif(WIN32)
 	add_compile_options(/wd4018)
+
+	include_directories(../sdl2/include)
+	find_library(SDL2_LIBRARIES SDL2 PATHS ../sdl2/lib/x64/)
 endif()
 
 include_directories(SYSTEM ../mf/external/include)
@@ -24,7 +27,8 @@ find_package(OpenCV REQUIRED)
 
 # link to mf
 include_directories(SYSTEM ../mf/dist/include)
-find_library(MF_LIB mf PATHS ../mf/dist/lib)
+find_library(MF_LIB mf PATHS ../mf/dist/lib NO_DEFAULT_PATH)
+
 
 # executable
 file(GLOB_RECURSE EXE_SRC "src/*.cc")
